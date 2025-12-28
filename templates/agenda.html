@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Agenda Mantenimiento</h2>
+
+    <a href="{% url 'mantenimiento_create' %}" class="btn btn-primary mb-3">
+        Nuevo Mantenimiento
+    </a>
+
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Fecha</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in mantenimento %}
+            <tr>
+                <td>{{ m.fecha }}</td>
+                <td>{{ m.descripcion }}</td>
+                <td>{{ m.estado }}</td>
+                <td>
+                    <a href="{% url 'mantenimiento_edit' m.id %}" class="btn btn-warning btn-sm">Editar</a>
+                    <a href="{% url 'mantenimiento_delete' m.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No hay mantenimientos registrados</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+<!-- <div class="container mt-4">
+    <h2 class="mb-4">Agenda de Mantenimiento</h2>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Fecha</th>
+                <th>Descripcion</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>2025-01-12</td>
+                <td>Cambio de aceite</td>
+                <td>Pendiente</td>
+            </tr>
+            <tr>
+                <td>2025-02-28</td>
+                <td>Revisión de frenos</td>
+                <td>Programado</td>
+            </tr>
+        </tbody>
+    </table>
+</div> -->
+{% endblock %}

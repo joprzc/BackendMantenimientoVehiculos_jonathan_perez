@@ -1,0 +1,22 @@
+{% load crispy_forms_tags %}
+
+<!-- formulario emergente para agregar vehiculo nuevo -->
+
+<div class="modal-header">
+    <h5 class="modal-title">Agregar Vehiculo</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="modal-body">
+        {{ form|crispy }}
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-success">Añadir nuevo Vehiculo</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Cancelar
+        </button>
+    </div>
+</form>

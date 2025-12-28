@@ -1,0 +1,97 @@
+# ───────────────────────────────
+# 1. ARCHIVOS DE PYTHON
+# ───────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+
+# Compilados por pip
+pip-log.txt
+
+# ───────────────────────────────
+# 2. ENTORNOS VIRTUALES
+# (Mac, Linux y Windows)
+# ───────────────────────────────
+venv/
+env/
+.venv/
+.env/
+ENV/
+VENV/
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# ───────────────────────────────
+# 3. SETTINGS SENSIBLES
+# (si usas variables locales)
+# ───────────────────────────────
+*.env
+.env.*
+# Config Django local (opcional)
+settings_local.py
+
+# ───────────────────────────────
+# 4. DJANGO
+# ───────────────────────────────
+# Archivos de migraciones compilados (los .py sí deben subirse)
+**/migrations/*.pyc
+**/migrations/__pycache__/
+
+# Archivos estáticos generados
+staticfiles/
+static/
+
+# Media subida por usuarios (subir solo si necesario)
+media/
+
+# SQLite local
+db.sqlite3
+
+# ───────────────────────────────
+# 5. BOOTSTRAP Y FRONTEND
+# (si instalas vía npm)
+# ───────────────────────────────
+node_modules/
+npm-debug.log
+package-lock.json  # opcional subirlo
+
+# Compilados de Sass (si fuera el caso)
+*.map
+
+# ───────────────────────────────
+# 6. EDITORES Y SISTEMA OPERATIVO
+# ───────────────────────────────
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VSCode
+.vscode/
+.history/
+
+# PyCharm
+.idea/
+
+# ───────────────────────────────
+# 7. ARCHIVOS TEMPORALES
+# ───────────────────────────────
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
