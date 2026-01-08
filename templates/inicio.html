@@ -1,103 +1,94 @@
-{% extends 'base.html' %}
-
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <div class="container mt-4">
+  <!-- tabs -->
+  <ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link active"
+        id="garage-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#garage-tab-pane"
+        type="button"
+        role="tab"
+        aria-controls="garage-tab-pane"
+        aria-selected="true"
+      >
+        Garage
+      </button>
+    </li>
+  </ul>
 
-	<!-- tabs -->
-	<ul class="nav nav-tabs" id="myTab" role="tablist">
-		<li class="nav-item" role="presentation">
-			<button class="nav-link active" id="garage-tab" data-bs-toggle="tab" data-bs-target="#garage-tab-pane"
-				type="button" role="tab" aria-controls="garage-tab-pane" aria-selected="true">
-				Garage</button>
-		</li>
-	</ul>
+  <!-- CONTENIDO DE LOS TABS -->
 
-	<!-- CONTENIDO DE LOS TABS -->
+  <div class="tab-content mt-3" id="myTabContent">
+    <!-- TAB GARAGE -->
 
-	<div class="tab-content mt-3" id="myTabContent">		
+    <div
+      class="tab-pane fade show active"
+      id="garage-tab-pane"
+      role="tabpanel"
+      aria-labelledby="garage-tab"
+    >
+      <div id="garageContainer">
+        <div class="row gy-3 align-items-stretch vehiclesContainer pb-2 mt-2">
+          {# ==== CARD VEHICULOS REGISTRADO ==== #} 
+          {% for v in vehiculos %}
+          <div
+            class="col-xl-2 col-lg-3 col-md-4 col-sm-4 col-6 user-select-none garage-item"
+          >
+            <a
+              href="{% url 'vehiculo_index' v.id %}"
+              class="card h-100 shadow-sm text-decoration-none"
+              style="cursor: pointer"
+            >
+              {% if v.imagen %}
+              <img
+                src="{{ v.imagen.url }}"
+                class="card-img-top"
+                style="height: 145px; object-fit: scale-down"
+              />
+              {% else %}
+              <img
+                src="https://via.placeholder.com/200x145?text=Vehículo"
+                class="card-img-top"
+                style="height: 145px; object-fit: scale-down"
+              />
+              {% endif %}
 
-		<!-- TAB GARAGE -->
+              <div class="card-body p-2">
+                <h6 class="card-title text-truncate">{{ v.anio }}</h6>
+                <h6 class="card-title text-truncate">{{ v.marca }}</h6>
+                <h6 class="card-title text-truncate">{{ v.modelo }}</h6>
+                <h6 class="card-title text-truncate">{{ v.placa }}</h6>
+              </div>
+            </a>
+          </div>
+          {% empty %} 
+          {% endfor %} 
+          {# ====CARD AGREGAR ==== #}
 
-		<div class="tab-pane fade show active" id="garage-tab-pane" role="tabpanel" aria-labelledby="garage-tab">
+          <div class="col-xl-2 col-lg-3 col-md-4 col-sm-4 col-6">
+            <div
+              class="card h-100 shadow-sm p-2 rounded text-center"
+              style="cursor: pointer"
+              data-bs-toggle="modal"
+              data-bs-target="#vehiculoModal"
+              onclick="cargarFormularioVehiculo()"
+            >
+              <div
+                class="d-flex align-items-center justify-content-center h-100"
+              >
+                <span class="fs-1 text-secondary">+</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
 
-			<div id="garageContainer">
-
-				<div class="row gy-3 align-items-stretch vehiclesContainer pb-2 mt-2">
-
-					{# ==== CARD VEHICULOS REGISTRADO ==== #}
-					{% for v in vehiculos %}
-					<div class="col-xl-2 col-lg-3 col-md-4 col-sm-4 col-6 user-select-none garage-item">
-
-						
-						<a href="{% url 'vehiculo_index' v.id %}"
-							class="card h-100 shadow-sm text-decoration-none"
-							style="cursor: pointer;">
-
-							{% if v.imagen %}
-							<img src="{{ v.imagen.url }}" class="card-img-top"
-								style="height: 145px; object-fit: scale-down;">
-							{% else %}
-							<img src="https://via.placeholder.com/200x145?text=Vehículo" class="card-img-top"
-								style="height: 145px; object-fit: scale-down;">
-							{% endif %}
-
-							<div class="card-body p-2">
-								<h6 class="card-title text-truncate">{{ v.anio }}</h6>
-								<h6 class="card-title text-truncate">{{ v.marca }}</h6>
-								<h6 class="card-title text-truncate">{{ v.modelo }}</h6>
-								<h6 class="card-title text-truncate">{{ v.placa }}</h6>
-							</div>
-
-						</a>			
-						
-					</div>
-					{% empty %}
-
-					{% endfor %}
-
-					{# ====CARD AGREGAR ==== #}
-					
-					<div class="col-xl-2 col-lg-3 col-md-4 col-sm-4 col-6">
-						<div class="card h-100 shadow-sm p-2 rounded text-center" 
-							 style="cursor: pointer;"
-							 data-bs-toggle="modal" 
-							 data-bs-target="#vehiculoModal" 
-							 onclick="cargarFormularioVehiculo()">
-
-							<div class="d-flex align-items-center justify-content-center h-100">
-								<span class="fs-1 text-secondary">+</span>
-							</div>
-						</div>
-					</div>
-
-				</div>
-			</div>
-
-		</div>
-	</div>
-
-	<!-- MODAL AGREGAR VEHICULO (FORMULARIO) -->
-	<div class="modal fade" id="vehiculoModal" tabindex="-1">
-		<div class="modal-dialog modal-lg modal-dialog-centered">
-			<div class="modal-content" id="vehiculoModalContent">
-				<!-- aqui se carga el formulario -->
-			</div>
-		</div>
-	</div>
-
+  <!-- MODAL AGREGAR VEHICULO (FORMULARIO) -->
 </div>
 
-<!-- <ul class="nav nav-tabs" id="myTab" role="tablist">
-	<li class="nav-item" role="presentation">
-		<button class="nav-link active" id="home-tab" data-bs-target="#home-tab-pane" type="button" role="tab"
-			aria-controls="home-tab-pane" aria-selected="true">Garage</button>
-	</li>
-</ul> -->
-
-
-
-<!-- boton agendamiento -->
-<!-- <a href="{% url 'agenda' %}" class="btn btn-primary">
-	Agenda de Mantenimiento
-</a> -->
 {% endblock %}

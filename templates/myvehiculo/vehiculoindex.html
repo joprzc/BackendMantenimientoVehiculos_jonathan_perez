@@ -2,77 +2,165 @@
 
 {% block content %}
 <div class="container mt-4">
+  <!-- encabezado -->
+  <div class="row mb-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <!-- boton volver -->
+      <button
+        type="button"
+        class="btn btn-secondary btn-sm"
+        onclick="window.history.back()"
+      >
+        <i class="bi bi-arrow-left-square"></i>
+      </button>
 
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard-tab-pane"
-                type="button" role="tab" aria-controls="dashboard-tab-pane" aria-selected="true">Dashboard</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="schedulemaintenance-tab" data-bs-toggle="tab"
-                data-bs-target="#schedulemaintenance-tab-pane" type="button" role="tab"
-                aria-controls="schedulemaintenance-tab-pane" aria-selected="true">Agendar Mantenimiento</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="servicereport-tab" data-bs-toggle="tab"
-                data-bs-target="#servicereport-tab-pane" type="button" role="tab" aria-controls="servicereport-tab-pane"
-                aria-selected="true">
-                Reporte de Servicio
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="repairs-tab" data-bs-toggle="tab" data-bs-target="#repairs-tab-pane"
-                type="button" role="tab" aria-controls="repairs-tab-pane" aria-selected="true">
-                Reparaciones
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="fuel-tab" data-bs-toggle="tab" data-bs-target="#fuel-tab-pane"
-                type="button" role="tab" aria-controls="fuel-tab-pane" aria-selected="true">
-                Combustible
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes-tab-pane"
-                type="button" role="tab" aria-controls="notes-tab-pane" aria-selected="true">
-                Notas
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="reminders-tab" data-bs-toggle="tab" data-bs-target="#reminders-tab-pane"
-                type="button" role="tab" aria-controls="reminders-tab-pane" aria-selected="true">
-                Recordatorios
-            </button>
-        </li>
-    </ul>
+      <!-- datos del vehiculo -->
+      <h1 class="text-truncate h3 mb-0 text-center flex-grow-1 mx-3">
+        {{ vehiculo.anio }} {{ vehiculo.marca }} {{ vehiculo.modelo }}
+        <small class="text-body-secondary">
+          ({{ vehiculo.placa }})
+        </small>
+      </h1>
 
-    <h2>Detalle del Vehiculo</h2>
+      <!-- boton editar -->
+      <button
+        type="button"
+        class="btn btn-warning btn-sm"
+        onclick="cargarFormularioVehiculoEditar('{{ vehiculo.id }}')"       
+        
+      >
+        <i class="bi bi-pencil-square"></i>
+      </button>      
+      
+  </div>
 
-    <ul>
-        <li>Año: {{ vehiculo.anio }}</li>
-        <li>Marca: {{ vehiculo.marca }}</li>
-        <li>Modelo: {{ vehiculo.modelo }}</li>
-        <li>Placa: {{ vehiculo.placa }}</li>
-        {% if vehiculo.imagen %}
-        <li><img src="{{ vehiculo.imagen.url }}" alt="Imagen del Vehiculo" style="max-width: 300px;"></li>
-        {% endif %}
-    </ul>
+  <!-- tabs -->
+  <ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link active"
+        id="dashboard-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#dashboard-tab-pane"
+        type="button"
+        role="tab"
+        aria-controls="dashboard-tab-pane"
+        aria-selected="true"
+      >
+        Dashboard
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="schedulemaintenance-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#schedulemaintenance-tab-pane"
+        type="button"
+        role="tab"
+        aria-controls="schedulemaintenance-tab-pane"
+        aria-selected="true"
+      >
+        Agendar Mantenimiento
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="servicereport-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#servicereport-tab-pane"
+        type="button"
+        role="tab"
+        aria-controls="servicereport-tab-pane"
+        aria-selected="true"
+      >
+        Reporte de Servicio
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="repairs-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#repairs-tab-pane"
+        type="button"
+        role="tab"
+        aria-controls="repairs-tab-pane"
+        aria-selected="true"
+      >
+        Reparaciones
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="fuel-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#fuel-tab-pane"
+        type="button"
+        role="tab"
+        aria-controls="fuel-tab-pane"
+        aria-selected="true"
+      >
+        Combustible
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="notes-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#notes-tab-pane"
+        type="button"
+        role="tab"
+        aria-controls="notes-tab-pane"
+        aria-selected="true"
+      >
+        Notas
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="reminders-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#reminders-tab-pane"
+        type="button"
+        role="tab"
+        aria-controls="reminders-tab-pane"
+        aria-selected="true"
+      >
+        Recordatorios
+      </button>
+    </li>
+  </ul>
 
-    <!-- agendar mantenimiento -->
-    <div class="tab-content" id="myTabContent">
-        <div class="tab-pane fade show active"
-             id="schedulemaintenance-tab-pane"
-             role="tabpanel"
-             aria-labelledby="schedulemaintenance-tab">
-
-             <!-- <a href="{% url 'agenda' %}" class="btn btn-primary mt-3">
-                Agendar Mantenimiento
-             </a> -->
-             {% include 'agenda.html' %}
-        </div>
+  <!-- pestaña dashboard -->
+  <div class="tab-content" id="myTabContent">
+    <!-- pestaña dashboard -->
+    <div
+      class="tab-pane fade show active"
+      id="dashboard-tab-pane"
+      role="tabpanel"
+      aria-labelledby="dashboard-tab"
+    >
+      {% include 'myvehiculo/_dashboard_content.html' %}
     </div>
+
+    <!-- pestaña agendar mantenimiento -->
+     
+    <div
+      class="tab-pane fade show active"
+      id="schedulemaintenance-tab-pane"
+      role="tabpanel"
+      aria-labelledby="schedulemaintenance-tab"
+    >
+      {% include 'agenda.html' %}
+    </div>
+  </div>
+
+  
 </div>
-
-
 
 {% endblock %}

@@ -3,20 +3,68 @@
 <!-- formulario emergente para agregar vehiculo nuevo -->
 
 <div class="modal-header">
-    <h5 class="modal-title">Agregar Vehiculo</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  <!-- <h5 class="modal-title">Agregar Vehiculo</h5> -->
+  <h5 class="modal-title">
+    {% if modo == "crear" %}
+      Agregar Vehículo
+    {% else %}
+      Editar Vehículo
+    {% endif %}
+  </h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 </div>
 
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
+<div class="modal-body">
+  <form method="POST" 
+        {% if modo == "editar" %}
+          action="{% url 'vehiculo_edit' vehiculo.id %}" 
+        {% else %}
+          action="{% url 'vehiculo_create' %}" 
+        {% endif %}  
+        enctype="multipart/form-data">
+        {% csrf_token %}
 
-    <div class="modal-body">
-        {{ form|crispy }}
-    </div>
-    <div class="modal-footer">
-        <button type="submit" class="btn btn-success">Añadir nuevo Vehiculo</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            Cancelar
-        </button>
-    </div>
-</form>
+        <!-- manejar errores -->
+        {% if form.errors %}
+          <div class="alert alert-danger">
+            <ul>
+              {% for field, errors in form.errors.items %}                
+                <li>{{ field }}: {{ errors|join:", " }}</li>                
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        <div class="modal-body">
+          {{ form|crispy }}
+        </div>
+
+        <div class="modal-footer">   
+    
+    {% if modo == "editar" %}
+      
+      <!-- Agregar un atributo data-id al botón Eliminar para asegurar que el ID esté disponible -->
+      <!-- Corregir el conflicto de llaves dobles usando el filtro escapejs -->
+      <button type="button" class="btn btn-danger btn-sm" 
+        onclick="confirmDelete(this)" 
+        data-id="{{ vehiculo.id }}">
+        Eliminar
+      </button>
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+      Cancelar
+      </button>
+      <button type="submit" class="btn btn-primary">         
+          Guardar
+      </button>    
+
+    {%else%}
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        Cancelar
+      </button>
+      <button type="submit" class="btn btn-success">Añadir nuevo Vehiculo        
+      </button>      
+    {% endif %}   
+    
+  </div>   
+  </form>
+</div>

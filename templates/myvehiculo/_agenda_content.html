@@ -1,15 +1,8 @@
-{% extends 'base.html' %}
-
-{% block content %}
-    
-
 <div class="container mt-4">
-    
 
     <a href="{% url 'mantenimiento_create' %}" class="btn btn-primary mb-3">
         Nuevo Mantenimiento
     </a>
-
     <table class="table table-bordered">
         <thead class="table-dark">
             <tr>
@@ -35,10 +28,6 @@
                 <td colspan="4">No hay mantenimientos registrados</td>
             </tr>
             {% endfor %}
-        </tbody>
-    </table>
+        </tbody>  
+    </table>  
 </div>
-
-
-
-{% endblock %}

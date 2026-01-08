@@ -1,47 +1,39 @@
-Eres un asistente experto en Django.
+Analiza el código actual del proyecto Django (views.py, urls.py, templates y JavaScript).
 
-CONTEXTO:
-Estoy desarrollando un proyecto en Django que YA tiene código funcional.
-NO debes modificar ni romper código existente.
-Tu trabajo es únicamente GUIARME paso a paso.
+Objetivo:
+Corregir el error que ocurre en la línea del botón:
+onclick="confirmDelete({{ vehiculo.id }})"
+y lograr que la eliminación de un vehículo funcione correctamente.
 
-OBJETIVO ACTUAL:
-Implementar la funcionalidad de CERRAR SESIÓN (logout).
+Condiciones importantes:
+- NO reestructures el proyecto.
+- NO conviertas las vistas a CBV.
+- NO elimines el uso de modales.
+- NO cambies nombres de vistas ni URLs existentes.
+- Trabaja únicamente sobre el código ya implementado.
+- El botón "Eliminar" está dentro de un modal cargado dinámicamente con fetch.
+- La vista vehiculo_delete usa @require_POST.
+- El modal se renderiza desde vehiculo_form_modal.html.
 
-REGLAS IMPORTANTES:
-- NO escribas código automáticamente en todos los archivos.
-- NO asumas que debo borrar o reescribir funciones existentes.
-- NO cambies configuraciones globales sin explicarlo primero.
-- SOLO indícame:
-  1) En qué archivo debe ir cada función
-  2) Qué función debo crear
-  3) Qué imports son necesarios
-  4) Qué URL debo agregar
-  5) Cómo conectar la vista con el template
-- Si existe más de una forma correcta, explícame cuál es la más recomendable y por qué.
-- Usa siempre buenas prácticas de Django.
+Lo que necesito de ti:
+1. Detecta exactamente por qué se genera el error en la línea del onclick.
+2. Indícame si el problema es de:
+   - contexto de template Django
+   - JavaScript
+   - carga dinámica del modal
+   - CSRF
+   - método HTTP
+3. Explícame paso a paso qué está mal y por qué falla.
+4. Sugiere cambios mínimos y puntuales para que:
+   - El botón Eliminar funcione dentro del modal.
+   - Se envíe correctamente un POST a vehiculo_delete.
+5. No inventes código nuevo innecesario.
+6. Usa el código existente como base y ajústalo.
+7. Si se requiere JavaScript adicional, indica exactamente:
+   - dónde debe ir
+   - por qué es necesario
+8. NO hagas cambios automáticos sin explicación previa.
 
-ESTRUCTURA ESPERADA DE LA RESPUESTA:
-1. Explicación breve de cómo funciona el cierre de sesión en Django
-2. Archivo donde va la función (ejemplo: app/views.py)
-3. Nombre exacto de la función (ejemplo: cerrar_sesion)
-4. Código mínimo y claro SOLO de esa función
-5. Archivo donde se registra la URL (ejemplo: app/urls.py)
-6. Código mínimo SOLO de la ruta
-7. Archivo del template donde se usará (ejemplo: templates/base.html)
-8. Ejemplo del botón o enlace para cerrar sesión
-9. Posibles errores comunes y cómo evitarlos
-
-FORMA DE EXPLICAR:
-- Usa comentarios en el código
-- Explica como si fuera nivel principiante–intermedio
-- No adelantes funcionalidades futuras a menos que te lo pida
-
-IMPORTANTE:
-Después de esta función, quiero poder pedir ayuda para:
-- proteger vistas con login_required
-- roles de usuario
-- permisos
-- sesiones personalizadas
-
-Confirma cada paso antes de continuar con el siguiente.
+Resultado esperado:
+- Eliminar un vehículo desde el modal sin errores.
+- Que la solución respete la estructura actual del proyecto.
