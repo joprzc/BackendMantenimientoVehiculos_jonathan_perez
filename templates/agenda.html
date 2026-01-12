@@ -1,44 +1,40 @@
-{% extends 'base.html' %}
-
 {% block content %}
-    
 
 <div class="container mt-4">
     
-
-    <a href="{% url 'mantenimiento_create' %}" class="btn btn-primary mb-3">
-        Nuevo Mantenimiento
-    </a>
-
-    <table class="table table-bordered">
-        <thead class="table-dark">
+    <table class="table table-striped">
+        <thead>
             <tr>
-                <th>Fecha</th>
+                <th>Vehículo</th>
                 <th>Descripción</th>
-                <th>Estado</th>
+                <th>Fecha Programada</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
-            {% for m in mantenimento %}
+            {% for mantenimiento in mantenimientos %}
             <tr>
-                <td>{{ m.fecha }}</td>
-                <td>{{ m.descripcion }}</td>
-                <td>{{ m.estado }}</td>
+                <td>{{ mantenimiento.vehiculo }}</td>
+                <td>{{ mantenimiento.descripcion }}</td>
+                <td>{{ mantenimiento.fecha }}</td>
+
                 <td>
-                    <a href="{% url 'mantenimiento_edit' m.id %}" class="btn btn-warning btn-sm">Editar</a>
-                    <a href="{% url 'mantenimiento_delete' m.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                    <a href="{% url 'mantenimiento_edit' mantenimiento.id %}" class="btn btn-primary btn-sm">Editar</a>
+                    <form action="{% url 'mantenimiento_delete' mantenimiento.id %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                    </form>
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="4">No hay mantenimientos registrados</td>
+                <td colspan="4">No hay mantenimientos programados.</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-</div>
-
+    <a href="{% url 'mantenimiento_create' %}" class="btn btn-success">Agregar Mantenimiento</a>
 
 
 {% endblock %}
+

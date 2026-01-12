@@ -34,6 +34,7 @@
       
   </div>
 
+
   <!-- tabs -->
   <ul class="nav nav-tabs" id="myTab" role="tablist">
     <li class="nav-item" role="presentation">
@@ -136,8 +137,9 @@
     </li>
   </ul>
 
-  <!-- pestaña dashboard -->
-  <div class="tab-content" id="myTabContent">
+  
+  
+  <div class="tab-content mt-3" id="myTabContent">
     <!-- pestaña dashboard -->
     <div
       class="tab-pane fade show active"
@@ -145,20 +147,21 @@
       role="tabpanel"
       aria-labelledby="dashboard-tab"
     >
-      {% include 'myvehiculo/_dashboard_content.html' %}
+      <h3>Dashboard</h3>
+      <p>Estado del Vehículo</p>
     </div>
-
+    
     <!-- pestaña agendar mantenimiento -->
-     
-    <div
-      class="tab-pane fade show active"
+    <div 
+      class="tab-pane fade"
       id="schedulemaintenance-tab-pane"
       role="tabpanel"
-      aria-labelledby="schedulemaintenance-tab"
-    >
-      {% include 'agenda.html' %}
-    </div>
-  </div>
+      aria-labelledby="schedulemaintenance-tab">        
+        {% include 'agenda.html' %}
+    </div>    
+         
+  </div> 
+  
 
   
 </div>

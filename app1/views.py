@@ -1,4 +1,5 @@
 from ast import If
+from operator import ge
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
@@ -81,19 +82,35 @@ def LogoutPage(request):
 # agenda de mantenimiento
 # listar
 def agenda(request):
-    mantenimento = Mantenimiento.objects.all()
-    return render(request, "agenda.html", {"mantenimento": mantenimento})
+    mantenimientos = Mantenimiento.objects.select_related("vehiculo").all()
+    return render(
+        request,
+        "agenda.html",
+        {
+            "mantenimientos": mantenimientos,
+        },
+    )
 
 
 # crear
 def mantenimiento_create(request):
-    form = MantenimientoForm(request.POST or None)
-    if form.is_valid():
-        form.save()
-        messages.success(request, "Mantenimiento creado exitosamente.")
-        return redirect("agenda")  # redirigir a la vista agenda
-    # Carga el template mantenimiento_form.html
-    return render(request, "mantenimiento_form.html", {"form": form})
+    if request.method == "POST":
+        form = MantenimientoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Mantenimiento creado exitosamente.")
+            # return redirect("agenda")
+            return redirect("vehiculo_index", id=form.cleaned_data["vehiculo"].id)
+    else:
+        form = MantenimientoForm()
+
+    return render(
+        request,
+        "mantenimiento_form.html",
+        {
+            "form": form,
+        },
+    )
 
 
 # editar
@@ -103,7 +120,7 @@ def mantenimiento_edit(request, id):
     if form.is_valid():
         form.save()
         messages.success(request, "Mantenimiento actualizado exitosamente.")
-        return redirect("agenda")
+        return redirect("vehiculo_index", id=form.cleaned_data["vehiculo"].id)
     return render(request, "mantenimiento_form.html", {"form": form})
 
 
@@ -111,8 +128,10 @@ def mantenimiento_edit(request, id):
 @require_POST  # solo permite metodo POST
 def mantenimiento_delete(request, id):
     mantenimiento = get_object_or_404(Mantenimiento, id=id)
+    vehiculo_id = mantenimiento.vehiculo.id
     mantenimiento.delete()
-    return redirect("agenda")
+    messages.success(request, "Mantenimiento eliminado exitosamente.")
+    return redirect("vehiculo_index", id=vehiculo_id)
 
 
 # VAHICULOS
@@ -120,8 +139,19 @@ def mantenimiento_delete(request, id):
 
 # pagina principal de vehiculo
 def vehiculo_index(request, id):
-    vehiculo = get_object_or_404(Vehiculo, id=id)
-    return render(request, "myvehiculo/vehiculoindex.html", {"vehiculo": vehiculo})
+    # vehiculo = get_object_or_404(Vehiculo, id=id)
+    vehiculo = get_object_or_404(
+        Vehiculo.objects.prefetch_related("mantenimientos"), id=id
+    )
+
+    return render(
+        request,
+        "myvehiculo/vehiculoindex.html",
+        {
+            "vehiculo": vehiculo,
+            "mantenimientos": vehiculo.mantenimientos.all(),
+        },
+    )
 
 
 # crear vista vehiculo
