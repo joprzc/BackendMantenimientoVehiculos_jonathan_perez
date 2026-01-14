@@ -7,17 +7,34 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Mantenimiento',
+            name="Mantenimiento",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('fecha', models.DateField()),
-                ('descripcion', models.CharField(max_length=150)),
-                ('estado', models.CharField(choices=[('Pendiente', 'Pendiente'), ('Programado', 'Programado'), ('Realizado', 'Realizado')], max_length=20)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("fecha", models.DateField()),
+                ("descripcion", models.CharField(max_length=150)),
+                (
+                    "estado",
+                    models.CharField(
+                        choices=[
+                            ("Pendiente", "Pendiente"),
+                            ("Programado", "Programado"),
+                            ("Realizado", "Realizado"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
             ],
         ),
     ]
