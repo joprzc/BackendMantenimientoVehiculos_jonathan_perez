@@ -99,3 +99,42 @@ class obddata(models.Model):
             return False
 
         return True
+
+
+# Guardar recomendaciones en base de datos
+# paso 1
+class RecomendacionMantenimiento(models.Model):
+    ESTADO_CHOICES = [
+        ("pendiente", "Pendiente"),
+        ("atendido", "Atendido"),
+    ]
+
+    SEVERIDAD_CHOICES = [
+        ("info", "Informativo"),
+        ("warning", "Advertencia"),
+        ("critical", "Crítico"),
+    ]
+
+    vehiculo = models.ForeignKey(
+        Vehiculo, on_delete=models.CASCADE, related_name="recomendaciones"
+    )
+
+    codigo = models.CharField(max_length=50)
+    titulo = models.CharField(max_length=100)
+    mensaje = models.TextField()
+
+    severidad = models.CharField(max_length=10, choices=SEVERIDAD_CHOICES)
+
+    estado = models.CharField(
+        max_length=10, choices=ESTADO_CHOICES, default="pendiente"
+    )
+
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.vehiculo} - {self.codigo} ({self.severidad})"
+
+
+# paso 2: migrar
+# python manage.py makemigrations app1
+# python manage.py migrate app1
