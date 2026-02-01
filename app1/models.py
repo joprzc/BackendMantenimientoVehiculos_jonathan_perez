@@ -10,7 +10,8 @@ import app1
 class Vehiculo(models.Model):
 
     anio = models.IntegerField()
-    marca = models.CharField(max_length=50, unique=True)
+    # marca = models.CharField(max_length=50, unique=True)
+    marca = models.CharField(max_length=50)
     modelo = models.CharField(max_length=50)
     placa = models.CharField(max_length=10)
     # necesario para RF22
@@ -20,6 +21,11 @@ class Vehiculo(models.Model):
     # anotacions de tipo para evitar errores de pylance
     mantenimientos: models.Manager["Mantenimiento"]
     id: int  # El id siempre es un entero en Django por defecto
+
+    @property
+    def tipo_combustible(self):
+        # alias limpio para usar en servicios
+        return self.tipo_comsbustible
 
     # define como se veran las filas
     def __str__(self):
@@ -60,10 +66,10 @@ class obddata(models.Model):
         blank=True,
     )
 
-    # vehicle_code = models.CharField(max_length=20, db_index=True)
-    vehicle_code = models.CharField(max_length=20)
-    # timestamp = models.DateTimeField(db_index=True)
-    timestamp = models.DateTimeField()
+    vehicle_code = models.CharField(max_length=20, db_index=True)
+    # vehicle_code = models.CharField(max_length=20)
+    timestamp = models.DateTimeField(db_index=True)
+    # timestamp = models.DateTimeField()
 
     engine_rpm = models.FloatField(null=True, blank=True)
     vehicle_speed_kph = models.FloatField(null=True, blank=True)
@@ -72,6 +78,11 @@ class obddata(models.Model):
     coolant_temp_c = models.FloatField(null=True, blank=True)
 
     oil_pressure_psi = models.FloatField(null=True, blank=True)
+
+    # nuevos campos
+    battery_voltage_v = models.FloatField(null=True, blank=True)
+    fuel_level_percent = models.FloatField(null=True, blank=True)
+    engine_failure_imminent = models.BooleanField(null=True, blank=True)
 
     # obtener meta datos
     class Meta:
@@ -85,7 +96,7 @@ class obddata(models.Model):
             ),
         ]
 
-    # validaciones de domoinio
+    # validaciones de dominio
     def is_valid_record(self):
 
         if (

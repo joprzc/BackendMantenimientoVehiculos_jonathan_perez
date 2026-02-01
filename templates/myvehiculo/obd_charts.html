@@ -1,0 +1,84 @@
+<!-- Crear pantalla de graficas + filtros -->
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Gráficas OBD{% endblock %}
+
+{% block content %}
+<section class="content">
+    <div class="container-fluid">
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Filtros</h3>
+            </div>
+            <div class="card-body">
+                <form id="filtersForm" class="row g-2">
+                    <div class="col-md-4">
+                        <label class="form-label">Vehiculo</label>
+                        <select class="form-control" id="vehiculoId">
+                            {% for v in vehiculos %}
+                                <option value="{{ v.id }}">{{ v.placa }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Desde</label>
+                        <input type="date" class="form-control" id="fechaInicio">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Hasta</label>
+                        <input type="date" class="form-control" id="fechaFin">
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-primary w-100" id="btnAplicar">Aplicar
+                        </button>
+                    </div>                        
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">RPM promedio</div>
+                    <div class="card-body"><canvas id="chartRpm"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">Temperatura del motor</div>
+                    <div class="card-body"><canvas id="chartTemp"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">Nivel de combustible</div>
+                    <div class="card-body"><canvas id="chartFuel"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">Voltaje de batería</div>
+                    <div class="card-body"><canvas id="chartVolt"></canvas></div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">Alertas (engine_failure_imminent)</div>
+                    <div class="card-body"><canvas id="chartAlerts"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/obd_charts.js' %}"></script>
+{% endblock %}

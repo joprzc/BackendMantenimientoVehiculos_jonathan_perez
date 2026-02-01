@@ -1,1 +1,153 @@
-<h2>My Dashboard</h2>
+{% load static %}
+
+
+<div class="alert alert-secondary mt-2">
+    <strong>OBD vinculados a este vehículo: </strong> {{ obd_count }}
+        {% if last_obd %}
+        | <strong>Último registro:</strong> {{ last_obd.timestamp|date:"Y-m-d H:i" }}
+        {% else %}
+        | <em>No hay registros OBD vinculados</em>
+        {% endif %}    
+</div>
+
+<div class="container-fluid">
+
+    <!-- Mensajes Django -->
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} mt-2">
+        {{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <h3 class="mb-0">Dashboard del vehiculo</h3>
+        <small class="text-muted">{{ vehiculo.placa }} - {{ vehiculo.marca }} {{
+            vehiculo.modelo }}</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary"
+           href="{% url 'obd_charts' %}">
+            Ver Gráficas OBD
+        </a>
+        <a class="btn btn-primary" href="{% url 'vehiculo_index' vehiculo.id %}">
+            Analizar ahora
+        </a>
+    </div>
+</div>
+
+<!-- Metricas -->
+<div class="row mt-3">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted">Horas de Motor</div>
+                <h4 class="mb-0">{{ horas_motor }}</h4>                
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="text-muted">Km estimados</div>
+          <h4 class="mb-0">{{ km_estimados }}</h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="text-muted">Tiempo en RPM alta (min)</div>
+          <h4 class="mb-0">{{ rpm_alta_min }}</h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="text-muted">Tiempo temp crítica (min)</div>
+          <h4 class="mb-0">{{ temp_critica_min }}</h4>
+        </div>
+      </div>
+    </div>
+</div>
+<!-- Recomendaicones pendientes -->
+<div class="card mt-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Recomendaciones pendientes</strong>
+        <span class="badge bg-warning text-dark">{{ rec_pendientes|length }}</span>
+    </div>
+    <div class="card-body p-0">
+        {% if rec_pendientes %}
+        <div class="table-responsive">
+            <table class="table table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Codigo</th>
+                        <th>Titulo</th>
+                        <th>Severidad</th>
+                        <th>Mensaje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rec_pendientes %}
+                    <tr>
+                        <td>{{ r.fecha_creacion|date:"Y-m-d H:i" }}</td>
+                        <td>{{ r.codigo }}</td>
+                        <td>{{ r.titulo }}</td>
+                        <td>
+                            {% if r.severidad == "critical" %}
+                            <span class="badge bg-danger">Critico</span>
+                            {% elif r.severidad == "warning" %}
+                            <span class="badge bg-warning text-dark">Advertencia</span>
+                            {% else %}
+                            <span class="badge bg-info text-dark">Info</span>
+                            {% endif %}                            
+                        </td>
+                        <td>{{ r.mensaje }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-3 text-muted">No hay recomendaciones pendientes.</div>
+        {% endif %}
+    </div>
+</div>
+<!-- Recomendaciones atendidas -->
+<div class="card mt-3">
+    <div class="card-header">
+        <strong>Histotial ultimas atendidas</strong>
+    </div>
+    <div class="card-body p-0">
+        {% if rec_atendidas %}
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Codigo</th>
+                        <th>Titulo</th>
+                        <th>Severidad</th>                        
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rec_atendidas %}
+                    <tr>
+                        <td>{{ r.fecha_creacion|date:"Y-m-d H:i" }}</td>
+                        <td>{{ r.codigo }}</td>
+                        <td>{{ r.titulo }}</td>
+                        <td>{{ r.get_severidad_display }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-3 text-muted">No hay recomendaciones atendidas.</div>
+        {% endif %}
+    </div>
+</div>
+

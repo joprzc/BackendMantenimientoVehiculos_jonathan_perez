@@ -1,4 +1,9 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle del Vehículo{% endblock %}
+
+
 
 {% block content %}
 <div class="container mt-4">
@@ -147,8 +152,9 @@
       role="tabpanel"
       aria-labelledby="dashboard-tab"
     >
-      <h3>Dashboard</h3>
-      <p>Estado del Vehículo</p>
+      <!-- <h3>Dashboard</h3>
+      <p>Estado del Vehículo</p> -->
+      {% include 'myvehiculo/_dashboard_content.html' %}
     </div>
     
     <!-- pestaña agendar mantenimiento -->
@@ -157,7 +163,8 @@
       id="schedulemaintenance-tab-pane"
       role="tabpanel"
       aria-labelledby="schedulemaintenance-tab">        
-        {% include 'agenda.html' %}
+        {% include 'myvehiculo/agenda.html' %}
+        
     </div>    
          
   </div> 

@@ -1,0 +1,74 @@
+(venv) jonathanperez@MacBook-Pro registro % tree -I 'venv|__pycache__|plugins'
+.
+├── app1
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── forms.py
+│   ├── management
+│   │   ├── __init__.py
+│   │   └── commands
+│   │       ├── __init__.py
+│   │       ├── clean_obd_data.py
+│   │       └── link_obd_to_vehicle.py
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   ├── 0001_initial.py
+│   │   ├── 0002_vehiculo.py
+│   │   ├── 0003_mantenimiento_vehiculo.py
+│   │   ├── 0004_obddata.py
+│   │   ├── 0005_obddata_vehiculo_vehiculo_tipo_comsbustible_and_more.py
+│   │   └── 0006_recomendacionmantenimiento.py
+│   ├── mixins.py
+│   ├── models.py
+│   ├── services
+│   │   ├── __init__.py
+│   │   ├── maintenance_analyzer.py
+│   │   ├── maintenance_rules.py
+│   │   ├── obd_metrics.py
+│   │   └── recommendation_repository.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── backup.json
+├── db.sqlite3
+├── estructura_proyecto.txt
+├── manage.py
+├── media
+│   └── vehiculos
+│       ├── 1001.png
+│       ├── Cabina-Doble-4X2-TM-RBB.png
+│       ├── CHEVROLET-LUV-D-MAX-2014-C-D-OSCURO.png
+│       └── ford-fiesta-vignale-dm-2.jpg
+├── prompt.txt
+├── registro
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── static
+│   └── adminlte
+│       ├── css
+│       │   └── adminlte.min.css
+│       └── js
+│           ├── adminlte.min.js
+│           └── obd_charts.js
+└── templates
+    ├── adminlte
+    │   └── base_adminlte.html
+    ├── agenda.html
+    ├── base.html
+    ├── index.html
+    ├── inicio.html
+    ├── login.html
+    ├── mantenimiento_form.html
+    ├── myvehiculo
+    │   ├── _agenda_content.html
+    │   ├── _dashboard_content.html
+    │   ├── garage.html
+    │   ├── mantenimiento
+    │   ├── obd_charts.html
+    │   └── vehiculoindex.html
+    ├── signup.html
+    └── vehiculo_form_modal.html
