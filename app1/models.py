@@ -72,17 +72,19 @@ class obddata(models.Model):
     # timestamp = models.DateTimeField()
 
     engine_rpm = models.FloatField(null=True, blank=True)
+    engine_temp_c = models.FloatField(null=True, blank=True)
+    fuel_level_percent = models.FloatField(null=True, blank=True)
+    battery_voltage_v = models.FloatField(null=True, blank=True)
+    engine_failure_imminent = models.BooleanField(null=True, blank=True)
+
     vehicle_speed_kph = models.FloatField(null=True, blank=True)
 
-    engine_temp_c = models.FloatField(null=True, blank=True)
     coolant_temp_c = models.FloatField(null=True, blank=True)
 
-    oil_pressure_psi = models.FloatField(null=True, blank=True)
+    # oil_pressure_psi = models.FloatField(null=True, blank=True)
 
     # nuevos campos
-    battery_voltage_v = models.FloatField(null=True, blank=True)
-    fuel_level_percent = models.FloatField(null=True, blank=True)
-    engine_failure_imminent = models.BooleanField(null=True, blank=True)
+    # oil_pressure_psi = models.FloatField(null=True, blank=True)
 
     # obtener meta datos
     class Meta:

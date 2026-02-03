@@ -8,6 +8,8 @@
 {% block content %}
 <section class="content">
     <div class="container-fluid">
+        <!-- {% url 'api_rpm_promedio' as rpm_url %} -->
+        <div id="obdChartsRoot" data-api-base="/app1/api/obd"></div>
 
         <div class="card">
             <div class="card-header">
@@ -45,31 +47,66 @@
             <div class="col-lg-6">
                 <div class="card">
                     <div class="card-header">RPM promedio</div>
-                    <div class="card-body"><canvas id="chartRpm"></canvas></div>
+                    <div class="card-body">
+                        <div class="chart" style="position: relative; height: 260px;">
+                            <canvas id="chartRpm"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
+
             <div class="col-lg-6">
                 <div class="card">
                     <div class="card-header">Temperatura del motor</div>
-                    <div class="card-body"><canvas id="chartTemp"></canvas></div>
+                    <div class="card-body">
+                        <div class="chart" style="position: relative; height: 260px;">
+                            <canvas id="chartTemp"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
+
             <div class="col-lg-6">
                 <div class="card">
-                    <div class="card-header">Nivel de combustible</div>
-                    <div class="card-body"><canvas id="chartFuel"></canvas></div>
+                    <div class="card-header">Velocidad del vehículo</div>
+                    <div class="card-body">
+                        <div class="chart" style="position: relative; height: 260px;">
+                            <canvas id="chartVehSpeed"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
+
             <div class="col-lg-6">
                 <div class="card">
-                    <div class="card-header">Voltaje de batería</div>
-                    <div class="card-body"><canvas id="chartVolt"></canvas></div>
+                    <div class="card-header">Temperatura refrigerante</div>
+                    <div class="card-body">
+                        <div class="chart" style="position: relative; height: 260px;">
+                            <canvas id="chartCoolant"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">Presión de aceite</div>
+                    <div class="card-body">
+                        <div class="chart" style="position: relative; height: 260px;">
+                            <canvas id="chartOilPressure"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">Alertas (engine_failure_imminent)</div>
-                    <div class="card-body"><canvas id="chartAlerts"></canvas></div>
+                    <div class="card-body">
+                        <div class="chart" style="position: relative; height: 320px;">
+                            <canvas id="chartAlerts"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -80,5 +117,5 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{% static 'js/obd_charts.js' %}"></script>
+<script src="{% static 'adminlte/js/obd_charts.js' %}"></script>
 {% endblock %}

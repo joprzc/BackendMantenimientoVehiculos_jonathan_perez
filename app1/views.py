@@ -24,6 +24,9 @@ from app1.services.obd_metrics import (
 )
 from app1.services.maintenance_analyzer import analizar_vehiculo_y_guardar
 
+# graficas adminLTE
+from app1.services.obd_chart_service import get_obd_chart_data
+
 
 # Create your views here.
 @login_required(
@@ -242,21 +245,45 @@ def obd_charts_view(request):
     return render(request, "myvehiculo/obd_charts.html", {"vehiculos": vehiculos})
 
 
+# graficos adminLTE
+def obd_chart_data(request):
+    vehiculo_id = request.GET.get("vehiculo")
+    fecha_inicio = request.GET.get("desde")
+    fecha_fin = request.GET.get("hasta")
+
+    data = get_obd_chart_data(vehiculo_id, fecha_inicio, fecha_fin)
+    return JsonResponse(data)
+
+
 # leer filtros
 def _get_filters(request):
     vehiculo_id = request.GET.get("vehiculo_id")
     fi = parse_date(request.GET.get("fecha_inicio") or "")
     ff = parse_date(request.GET.get("fecha_fin") or "")
 
+    # Base queryset
     qs = obddata.objects.all()
 
+    # Filtro por vehículo: primero por FK, y si no hay datos, por vehicle_code (placa)
     if vehiculo_id:
-        qs = qs.filter(vehiculo_id=vehiculo_id)
+        qs_fk = qs.filter(vehiculo_id=vehiculo_id)
 
+        if qs_fk.exists():
+            qs = qs_fk
+        else:
+            # Fallback: muchos datasets OBD vienen solo con vehicle_code
+            vehiculo = Vehiculo.objects.filter(pk=vehiculo_id).only("placa").first()
+            if vehiculo and vehiculo.placa:
+                qs = qs.filter(vehicle_code=vehiculo.placa)
+            else:
+                qs = qs.none()
+
+    # Filtros por fecha (aplican al queryset ya seleccionado)
     if fi:
         qs = qs.filter(timestamp__date__gte=fi)  # mayor o igual que
     if ff:
         qs = qs.filter(timestamp__date__lte=ff)  # menor o igual que
+
     return qs
 
 
@@ -273,6 +300,7 @@ def _serie_promedio(qs, field_name):
     return labels, values
 
 
+@login_required(login_url="login")
 # API endpoint para datos de gráficos OBD-II
 # engine_rpm
 def api_rpm_promedio(request):
@@ -281,6 +309,7 @@ def api_rpm_promedio(request):
     return JsonResponse({"labels": labels, "values": values})
 
 
+@login_required(login_url="login")
 # engine_temp_c
 def api_temp_motor(request):
     qs = _get_filters(request)
@@ -311,6 +340,7 @@ def api_registros_por_hora(request):
     return JsonResponse({"labels": labels, "values": values})
 
 
+@login_required(login_url="login")
 # vehicle_speed_kph
 def api_velocidad_promedio(request):
     qs = _get_filters(request)
@@ -318,6 +348,7 @@ def api_velocidad_promedio(request):
     return JsonResponse({"labels": labels, "values": values})
 
 
+@login_required(login_url="login")
 # coolant_temp_c
 def api_temp_refrigerante(request):
     qs = _get_filters(request)
@@ -325,6 +356,7 @@ def api_temp_refrigerante(request):
     return JsonResponse({"labels": labels, "values": values})
 
 
+@login_required(login_url="login")
 # oil_pressure_psi
 def api_presion_aceite(request):
     qs = _get_filters(request)
@@ -332,6 +364,7 @@ def api_presion_aceite(request):
     return JsonResponse({"labels": labels, "values": values})
 
 
+@login_required(login_url="login")
 # alertas
 def api_alerts(request):
     qs = _get_filters(request).filter(engine_failure_imminent=True)

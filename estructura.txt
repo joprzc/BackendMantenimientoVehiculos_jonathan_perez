@@ -1,0 +1,39 @@
+.
+├── app1
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── forms.py
+│   ├── management
+│   ├── migrations
+│   ├── mixins.py
+│   ├── models.py
+│   ├── services
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── backup.json
+├── estructura.txt
+├── manage.py
+├── media
+│   └── vehiculos
+├── registro
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── static
+│   └── adminlte
+└── templates
+    ├── adminlte
+    ├── base.html
+    ├── index.html
+    ├── inicio.html
+    ├── login.html
+    ├── mantenimiento_form.html
+    ├── myvehiculo
+    ├── signup.html
+    └── vehiculo_form_modal.html
+
+13 directories, 24 files
