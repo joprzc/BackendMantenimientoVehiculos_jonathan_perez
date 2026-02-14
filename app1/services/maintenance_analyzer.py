@@ -1,7 +1,8 @@
 # 1 Crear el módulo de análisis
 # 2 importar dependencias
-from datetime import timedelta
+from django.db.models import Max, Min
 from django.utils import timezone
+from datetime import timedelta
 
 from app1.models import obddata
 from app1.services.maintenance_rules import evaluar_mantenimiento
@@ -77,8 +78,6 @@ def analizar_vehiculo_detallado(vehiculo):
 
 
 # 6 Instrucciones para probar el servicio
-# from app1.models import Vehiculo
-# from app1.services.maintenance_analyzer import analizar_vehiculo
 
 # vehiculo = Vehiculo.objects.first()
 # analizar_vehiculo(vehiculo)

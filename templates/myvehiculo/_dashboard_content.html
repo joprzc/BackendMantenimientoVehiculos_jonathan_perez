@@ -1,14 +1,14 @@
 {% load static %}
 
 
-<div class="alert alert-secondary mt-2">
+<!-- <div class="alert alert-secondary mt-2">
     <strong>OBD vinculados a este vehículo: </strong> {{ obd_count }}
         {% if last_obd %}
         | <strong>Último registro:</strong> {{ last_obd.timestamp|date:"Y-m-d H:i" }}
         {% else %}
         | <em>No hay registros OBD vinculados</em>
         {% endif %}    
-</div>
+</div> -->
 
 <div class="container-fluid">
 
@@ -20,11 +20,11 @@
     {% endfor %}
     {% endif %}
 
-    <div class="d-flex justify-content-between align-items-center mt-3">
+    <!-- <div class="d-flex justify-content-between align-items-center mt-3">
         <h3 class="mb-0">Dashboard del vehiculo</h3>
         <small class="text-muted">{{ vehiculo.placa }} - {{ vehiculo.marca }} {{
             vehiculo.modelo }}</small>
-    </div>
+    </div> -->
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary"
            href="{% url 'obd_charts' %}">

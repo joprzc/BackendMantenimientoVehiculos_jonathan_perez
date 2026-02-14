@@ -1,51 +1,51 @@
 # crear vehiculos segun obd vehicle_code
 # crear vehiculos segun obd vehicle_code
-from django.core.management.base import BaseCommand
-from django.db import transaction
-from app1.models import Vehiculo, obddata
+# from django.core.management.base import BaseCommand
+# from django.db import transaction
+# from app1.models import Vehiculo, obddata
 
 
-class Command(BaseCommand):
-    help = "Crea Vehiculos faltantes según obd_data.vehicle_code y vincula obddata.vehiculo"
+# class Command(BaseCommand):
+#     help = "Crea Vehiculos faltantes según obd_data.vehicle_code y vincula obddata.vehiculo"
 
-    def handle(self, *args, **kwargs):
-        existing = set(Vehiculo.objects.values_list("placa", flat=True))
-        codes = list(obddata.objects.values_list("vehicle_code", flat=True).distinct())
-        created = 0
-        linked = 0
+#     def handle(self, *args, **kwargs):
+#         existing = set(Vehiculo.objects.values_list("placa", flat=True))
+#         codes = list(obddata.objects.values_list("vehicle_code", flat=True).distinct())
+#         created = 0
+#         linked = 0
 
-        with transaction.atomic():
-            for code in codes:
-                if not code:
-                    continue
-                if code not in existing:
-                    # Vehiculo.objects.create(
-                    #     placa=code,
-                    #     anio=2020,  # valor por defecto
-                    #     marca="Desconocida",  # valor por defecto
-                    #     modelo="N/D",
-                    #     tipo_combustible="Gasolina",
-                    # )
-                    vehiculo, created = Vehiculo.objects.get_or_create(
-                        placa=vehicle_code,
-                        defaults={
-                            "marca": marca,
-                            "modelo": modelo,
-                        },
-                    )
+#         with transaction.atomic():
+#             for code in codes:
+#                 if not code:
+#                     continue
+#                 if code not in existing:
+#                     # Vehiculo.objects.create(
+#                     #     placa=code,
+#                     #     anio=2020,  # valor por defecto
+#                     #     marca="Desconocida",  # valor por defecto
+#                     #     modelo="N/D",
+#                     #     tipo_combustible="Gasolina",
+#                     # )
+#                     vehiculo, created = Vehiculo.objects.get_or_create(
+#                         placa=vehicle_code,
+#                         defaults={
+#                             "marca": marca,
+#                             "modelo": modelo,
+#                         },
+#                     )
 
-            # vincular placas huerfanas
-            linked = (
-                obddata.objects.filter(vehiculo__isnull=True)
-                .filter(vehicle_code__in=existing)
-                .update(
-                    vehiculo_id=Vehiculo.objects.filter(
-                        placa=models.OuterRef("vehicle_code")
-                    ).values("id")[:1]
-                )
-            )
-        self.stdout.write(self.style.SUCCESS(f"Vehiculos creados: {created}"))
-        self.stdout.write(self.style.SUCCESS(f"Registros OBD vinculados: {linked}"))
+#             # vincular placas huerfanas
+#             linked = (
+#                 obddata.objects.filter(vehiculo__isnull=True)
+#                 .filter(vehicle_code__in=existing)
+#                 .update(
+#                     vehiculo_id=Vehiculo.objects.filter(
+#                         placa=models.OuterRef("vehicle_code")
+#                     ).values("id")[:1]
+#                 )
+#             )
+#         self.stdout.write(self.style.SUCCESS(f"Vehiculos creados: {created}"))
+#         self.stdout.write(self.style.SUCCESS(f"Registros OBD vinculados: {linked}"))
 
 
 # crear vehiculos segun obd vehicle_code

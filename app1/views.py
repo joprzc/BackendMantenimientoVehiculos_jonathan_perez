@@ -396,25 +396,20 @@ def vehiculo_dashboard(request, vehiculo_id):
     obd_count = qs.count()
     last_obd = qs.order_by("-timestamp").first()
 
-    # Metricas(no guardan nada, solo calculan)
-    # horas_motor = calcular_horas_motor(vehiculo)
-    horas_motor = 0
-    # km_estimados = calcular_kilometros_estimados(vehiculo)
-    km_estimados = 0
-    # rpm_alta_min = tiempo_rpm_alta(vehiculo, umbral=4000)
-    rpm_alta_min = 0
-    # temp_critica_min = tiempo_temperatura_critica(vehiculo, umbral=110)
-    temp_critica_min = 0
+    # Métricas OBD-II (no guardan nada, solo calculan en base al histórico)
+    horas_motor = calcular_horas_motor(vehiculo)
+    km_estimados = calcular_kilometros_estimados(vehiculo)
+    # Usamos el mismo umbral que en vehiculo_index para mantener consistencia
+    rpm_alta_min = tiempo_rpm_alta(vehiculo, umbral=3000)
+    temp_critica_min = tiempo_temperatura_critica(vehiculo, umbral=110)
 
-    # recomendaciones persistentes
-    rec_pendientes = []
-    rec_atendidas = []
-    # rec_pendientes = vehiculo.recomendaciones.filter(estado="Pendiente").order_by(
-    #     "-fecha_creacion"
-    # )
-    # rec_atendidas = vehiculo.recomendaciones.filter(estado="Atendida").order_by(
-    #     "-fecha_creacion"
-    # )[:10]
+    # Recomendaciones persistentes asociadas al vehículo
+    rec_pendientes = vehiculo.recomendaciones.filter(estado="Pendiente").order_by(
+        "-fecha_creacion"
+    )
+    rec_atendidas = vehiculo.recomendaciones.filter(estado="Atendida").order_by(
+        "-fecha_creacion"
+    )[:10]
 
     # context = {
     #     "vehiculo": vehiculo,
