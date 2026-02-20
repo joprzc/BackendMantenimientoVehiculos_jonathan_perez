@@ -14,8 +14,7 @@ from django.db.models import Avg, Count
 from django.db.models.functions import TruncHour
 
 # vistas del dashboard de OBD-II
-from app1.models import obddata
-from app1.models import Vehiculo, RecomendacionMantenimiento
+from app1.models import obddata, Vehiculo, RecomendacionMantenimiento
 from app1.services.obd_metrics import (
     calcular_horas_motor,
     calcular_kilometros_estimados,
@@ -156,28 +155,32 @@ def mantenimiento_delete(request, id):
 
 # pagina principal de vehiculo
 def vehiculo_index(request, id):
-    # vehiculo = get_object_or_404(Vehiculo, id=id)
+    # vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_id)
+    vehiculo = get_object_or_404(Vehiculo, id=id)
     vehiculo = get_object_or_404(
-        Vehiculo.objects.prefetch_related("mantenimientos"), id=id
+        Vehiculo.objects.prefetch_related("mantenimientos"), pk=id
     )
+
     # calcular metricas OBD-II
     horas_motor = calcular_horas_motor(vehiculo)
     km_estimados = calcular_kilometros_estimados(vehiculo)
     rpm_alta_min = tiempo_rpm_alta(vehiculo, umbral=3000)
-    temp_critica_min = tiempo_temperatura_critica(vehiculo, umbral=110)
+    temp_critica_min = tiempo_temperatura_critica(vehiculo, umbral=100)
 
-    return render(
-        request,
-        "myvehiculo/vehiculoindex.html",
-        {
-            "vehiculo": vehiculo,
-            "mantenimientos": vehiculo.mantenimientos.all(),
-            "horas_motor": horas_motor,
-            "km_estimados": km_estimados,
-            "rpm_alta_min": rpm_alta_min,
-            "temp_critica_min": temp_critica_min,
-        },
-    )
+    # Contexto base
+    context = {
+        "vehiculo": vehiculo,
+        "mantenimientos": vehiculo.mantenimientos.all(),
+        "horas_motor": horas_motor,
+        "km_estimados": km_estimados,
+        "rpm_alta_min": rpm_alta_min,
+        "temp_critica_min": temp_critica_min,
+    }
+
+    # mismo contexto para _dashboard_content.html
+    context.update(build_dashboard_context(vehiculo))
+
+    return render(request, "myvehiculo/vehiculoindex.html", context)
 
 
 # crear vista vehiculo
@@ -383,11 +386,68 @@ def api_alerts(request):
 def vehiculo_dashboard(request, vehiculo_id):
     # vehiculo = get_object_or_404(Vehiculo, id=vehiculo_id)
     vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_id)
+    context = {"vehiculo": vehiculo}
+    context.update(build_dashboard_context(vehiculo))
 
-    # obd vinculados por FK
+    # # obd vinculados por FK
+    # qs_fk = obddata.objects.filter(vehiculo=vehiculo)
+
+    # # obd por vehicle_code
+    # qs_code = obddata.objects.filter(vehicle_code=vehiculo.placa)
+
+    # # Usa el mejor queryset disponible
+    # qs = qs_fk if qs_fk.exists() else qs_code
+
+    # obd_count = qs.count()
+    # last_obd = qs.order_by("-timestamp").first()
+
+    # # Metricas(no guardan nada, solo calculan)
+    # horas_motor = calcular_horas_motor(vehiculo)
+    # # horas_motor = 0
+    # km_estimados = calcular_kilometros_estimados(vehiculo)
+    # # km_estimados = 0
+    # rpm_alta_min = tiempo_rpm_alta(vehiculo, umbral=3000)
+    # # rpm_alta_min = 0
+    # temp_critica_min = tiempo_temperatura_critica(vehiculo, umbral=100)
+    # # temp_critica_min = 0
+
+    # # recomendaciones persistentes
+    # # rec_pendientes = []
+    # # rec_atendidas = []
+    # rec_pendientes = vehiculo.recomendaciones.filter(estado="Pendiente").order_by(
+    #     "-fecha_creacion"
+    # )
+    # rec_atendidas = vehiculo.recomendaciones.exclude(estado="Atendido").order_by(
+    #     "-fecha_creacion"
+    # )[:10]
+
+    # context = {
+    #     "vehiculo": vehiculo,
+    #     "obd_count": obd_count,
+    #     "last_obd": last_obd,
+    #     "horas_motor": horas_motor,
+    #     "km_estimados": km_estimados,
+    #     "rpm_alta_min": rpm_alta_min,
+    #     "temp_critica_min": temp_critica_min,
+    #     "rec_pendientes": rec_pendientes,
+    #     "rec_atendidas": rec_atendidas,
+    # }
+
+    return render(request, "myvehiculo/_dashboard_content.html", context)
+
+
+# funcion Helper para renderizar el dashboard
+def build_dashboard_context(vehiculo):
+    """
+    Arma el contexto de métricas OBD + recomendaciones para un vehículo.
+    Se reutiliza en:
+      - vehiculo_dashboard (URL /dashboard/)
+      - vehiculoindex.html (pestaña Dashboard)
+    """
+    # OBD vinculados por FK
     qs_fk = obddata.objects.filter(vehiculo=vehiculo)
 
-    # obd por vehicle_code
+    # OBD por vehicle_code (placa)
     qs_code = obddata.objects.filter(vehicle_code=vehiculo.placa)
 
     # Usa el mejor queryset disponible
@@ -399,29 +459,27 @@ def vehiculo_dashboard(request, vehiculo_id):
     # Métricas OBD-II (no guardan nada, solo calculan en base al histórico)
     horas_motor = calcular_horas_motor(vehiculo)
     km_estimados = calcular_kilometros_estimados(vehiculo)
-    # Usamos el mismo umbral que en vehiculo_index para mantener consistencia
     rpm_alta_min = tiempo_rpm_alta(vehiculo, umbral=3000)
     temp_critica_min = tiempo_temperatura_critica(vehiculo, umbral=110)
 
     # Recomendaciones persistentes asociadas al vehículo
-    rec_pendientes = vehiculo.recomendaciones.filter(estado="Pendiente").order_by(
-        "-fecha_creacion"
-    )
-    rec_atendidas = vehiculo.recomendaciones.filter(estado="Atendida").order_by(
-        "-fecha_creacion"
-    )[:10]
+    # Mientras tanto, consideramos "pendiente" todo lo que NO está Atendida
+    # rec_atendidas = vehiculo.recomendaciones.filter(estado="Atendida").order_by(
+    #     "-fecha_creacion"
+    # )[:10]
+    # rec_pendientes = vehiculo.recomendaciones.exclude(estado="Atendida").order_by(
+    #     "-fecha_creacion"
+    # )
+    rec_pendientes = RecomendacionMantenimiento.objects.filter(
+        vehiculo=vehiculo,
+        estado="Pendiente",
+    ).order_by("-fecha_creacion")
+    rec_atendidas = RecomendacionMantenimiento.objects.filter(
+        vehiculo=vehiculo,
+        estado="Atendida",
+    ).order_by("-fecha_creacion")[:10]
 
-    # context = {
-    #     "vehiculo": vehiculo,
-    #     "horas_motor": horas_motor,
-    #     "km_estimados": km_estimados,
-    #     "rpm_alta_min": rpm_alta_min,
-    #     "temp_critica_min": temp_critica_min,
-    #     "rec_pendientes": rec_pendientes,
-    #     "rec_atendidas": rec_atendidas,
-    # }
-    context = {
-        "vehiculo": vehiculo,
+    return {
         "obd_count": obd_count,
         "last_obd": last_obd,
         "horas_motor": horas_motor,
@@ -431,12 +489,6 @@ def vehiculo_dashboard(request, vehiculo_id):
         "rec_pendientes": rec_pendientes,
         "rec_atendidas": rec_atendidas,
     }
-
-    # mostrar contador y ultimo dato
-    # obd_count = obddata.objects.filter(vehiculo=vehiculo).count()
-    # last_obd = obddata.objects.filter(vehiculo=vehiculo).order_by("-timestamp").first()
-
-    return render(request, "myvehiculo/_dashboard_content.html", context)
 
 
 # “Analizar ahora” (ejecuta reglas y guarda)
@@ -454,4 +506,5 @@ def analizar_vehiculo_action(request, vehiculo_id):
         messages.info(
             request, "Análisis completado. No se generaron nuevas recomendaciones."
         )
-    return redirect("vehiculo_dashboard", vehiculo_id=vehiculo.id)
+        # return redirect("vehiculo_dashboard", vehiculo_id=vehiculo.id)
+    return redirect("vehiculo_index", id=vehiculo.id)

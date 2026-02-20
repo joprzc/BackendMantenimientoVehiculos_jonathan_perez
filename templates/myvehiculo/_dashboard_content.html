@@ -14,10 +14,11 @@
 
     <!-- Mensajes Django -->
     {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} mt-2">
-        {{ message }}</div>
-    {% endfor %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} mt-2">
+                {{ message }}
+            </div>
+        {% endfor %}
     {% endif %}
 
     <!-- <div class="d-flex justify-content-between align-items-center mt-3">
@@ -30,7 +31,8 @@
            href="{% url 'obd_charts' %}">
             Ver Gráficas OBD
         </a>
-        <a class="btn btn-primary" href="{% url 'vehiculo_index' vehiculo.id %}">
+        <a class="btn btn-primary" 
+            href="{% url 'analizar_vehiculo_action' vehiculo.id %}">
             Analizar ahora
         </a>
     </div>
@@ -77,7 +79,7 @@
         <strong>Recomendaciones pendientes</strong>
         <span class="badge bg-warning text-dark">{{ rec_pendientes|length }}</span>
     </div>
-    <div class="card-body p-0">
+    <div class="card-body p-0">        
         {% if rec_pendientes %}
         <div class="table-responsive">
             <table class="table table-striped mb-0">

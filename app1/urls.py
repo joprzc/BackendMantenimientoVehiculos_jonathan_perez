@@ -35,7 +35,7 @@ urlpatterns = [
         name="vehiculo_dashboard",
     ),
     path(
-        "vehiculo/<int:vehiculo_id>/analizar/",
+        "vehiculos/<int:vehiculo_id>/analizar/",
         views.analizar_vehiculo_action,
         name="analizar_vehiculo_action",
     ),
