@@ -26,7 +26,8 @@ from app1 import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("app1/", include("app1.urls")),
+    # path("app1/", include("app1.urls")),
+    path("", include("app1.urls")),
     path("signup/", views.SignupPage, name="signup"),
     path("login/", views.LoginPage, name="login"),
     path("inicio/", views.InicioPage, name="inicio"),

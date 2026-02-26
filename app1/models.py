@@ -14,6 +14,12 @@ class Vehiculo(models.Model):
     marca = models.CharField(max_length=50)
     modelo = models.CharField(max_length=50)
     placa = models.CharField(max_length=10)
+
+    # codigo(placa) que llega desde OBD/collector
+    obd_code = models.CharField(
+        max_length=20, unique=True, null=True, blank=True, db_index=True
+    )
+
     # necesario para RF22
     tipo_comsbustible = models.CharField(max_length=20, default="Gasolina")
     imagen = models.ImageField(upload_to="vehiculos/", blank=True, null=True)

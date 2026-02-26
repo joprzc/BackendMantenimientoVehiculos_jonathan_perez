@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+from app1.api.views import OBDIngestAPIView
+
 urlpatterns = [
     # Rutas para mantenimientos
     path("agenda/nuevo/", views.mantenimiento_create, name="mantenimiento_create"),
@@ -39,4 +41,5 @@ urlpatterns = [
         views.analizar_vehiculo_action,
         name="analizar_vehiculo_action",
     ),
+    path("api/obd/ingest/", OBDIngestAPIView.as_view(), name="api_obd_ingest"),
 ]

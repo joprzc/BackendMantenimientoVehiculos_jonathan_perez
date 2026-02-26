@@ -14,8 +14,8 @@
 │   └── views.py
 ├── backup.json
 ├── db.sqlite3
-├── estructura.txt
 ├── estructura1.txt
+├── estructura2.txt
 ├── manage.py
 ├── media
 │   └── vehiculos

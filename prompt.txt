@@ -1,39 +1,40 @@
-Analiza el código actual del proyecto Django (views.py, urls.py, templates y JavaScript).
+Actúa como mi asistente técnico para implementar la OPCIÓN A de mi proyecto “Proyecto Tesis DB PostgreSQL”:
 
-Objetivo:
-Corregir el error que ocurre en la línea del botón:
-onclick="confirmDelete({{ vehiculo.id }})"
-y lograr que la eliminación de un vehículo funcione correctamente.
+OBJETIVO:
+Conectar un OBDLink MX+ por Wi-Fi y automatizar la captura de datos OBD-II hacia mi sistema (Django + PostgreSQL). Quiero un “collector” en Python que lea PIDs en tiempo real y los envíe a un endpoint REST de mi backend. El backend guarda en PostgreSQL y luego mi dashboard (AdminLTE + Chart.js) los grafica.
 
-Condiciones importantes:
-- NO reestructures el proyecto.
-- NO conviertas las vistas a CBV.
-- NO elimines el uso de modales.
-- NO cambies nombres de vistas ni URLs existentes.
-- Trabaja únicamente sobre el código ya implementado.
-- El botón "Eliminar" está dentro de un modal cargado dinámicamente con fetch.
-- La vista vehiculo_delete usa @require_POST.
-- El modal se renderiza desde vehiculo_form_modal.html.
+CONTEXTO:
+- Backend: Django + Django REST Framework
+- DB: PostgreSQL
+- Ya tengo tablas como `obd_data` y/o `vehicle_telemetry` con columnas: timestamp, vehicle_code, engine_rpm, vehicle_speed_kph, engine_temp_c, oil_pressure_psi, battery_voltage_v, fuel_level_percent, engine_failure_imminent.
+- No quiero procesos manuales (ni CSV). Todo debe ser automático: conectar Wi-Fi al OBDLink y empezar a capturar.
 
-Lo que necesito de ti:
-1. Detecta exactamente por qué se genera el error en la línea del onclick.
-2. Indícame si el problema es de:
-   - contexto de template Django
-   - JavaScript
-   - carga dinámica del modal
-   - CSRF
-   - método HTTP
-3. Explícame paso a paso qué está mal y por qué falla.
-4. Sugiere cambios mínimos y puntuales para que:
-   - El botón Eliminar funcione dentro del modal.
-   - Se envíe correctamente un POST a vehiculo_delete.
-5. No inventes código nuevo innecesario.
-6. Usa el código existente como base y ajústalo.
-7. Si se requiere JavaScript adicional, indica exactamente:
-   - dónde debe ir
-   - por qué es necesario
-8. NO hagas cambios automáticos sin explicación previa.
+REQUISITOS:
+1. Hazlo paso a paso (micro-pasos), sin romper el código.
+2. En cada paso dime EXACTAMENTE:
+   - Qué archivos debo tocar (ruta y nombre)
+   - Qué código agregar/cambiar (bloques completos)
+   - Qué librerías instalar (pip) y para qué sirven
+   - Cómo configurar variables (IP/puerto del OBDLink, intervalo de lectura)
+   - Cómo probar/verificar que el paso quedó bien (comandos, Postman, consultas SQL, logs)
+3. Incluye manejo de errores:
+   - Si no hay conexión al OBDLink, reintentar sin crashear
+   - Si un PID no existe, guardar null
+   - Logs claros (con timestamps)
+4. Seguridad básica:
+   - Proteger el endpoint con token (JWT o Token simple)
+   - Validación con serializer (DRF)
+5. Entregables:
+   - Script `collector/obd_collector.py` (o un comando Django `manage.py collect_obd`)
+   - Endpoint `POST /api/obd/ingest/`
+   - Serializer + view + urls
+   - Consultas SQL para verificar inserts y últimas lecturas
+   - Checklist de pruebas
 
-Resultado esperado:
-- Eliminar un vehículo desde el modal sin errores.
-- Que la solución respete la estructura actual del proyecto.
+PRIMERA RESPUESTA QUE QUIERO EN ESTE CHAT:
+- Un plan general de 6–10 pasos numerados.
+- Luego empezar con el PASO 1 (preparación de entorno) y dar instrucciones completas.
+- Asume macOS como mi entorno principal, pero dame notas si cambia en Windows.
+
+NOTA:
+Si el OBDLink MX+ requiere IP/puerto específico, indícame cómo detectarlo/confirmarlo y cómo probar conectividad (ping/telnet/nc).

@@ -16,6 +16,10 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ---- .env support (safe) ----
+OBD_INGEST_API_KEY = os.getenv("OBD_INGEST_API_KEY", "")
+OBD_INGEST_MAX_SKEW_SECONDS = int(os.getenv("OBD_INGEST_MAX_SKEW_SECONDS", "300"))
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -102,6 +106,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "odbiiprueba",
+        # "NAME": "obd_data",
         "USER": "postgres",
         "PASSWORD": "jprzc",
         "HOST": "localhost",
