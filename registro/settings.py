@@ -20,6 +20,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 OBD_INGEST_API_KEY = os.getenv("OBD_INGEST_API_KEY", "")
 OBD_INGEST_MAX_SKEW_SECONDS = int(os.getenv("OBD_INGEST_MAX_SKEW_SECONDS", "300"))
 
+# Rellenar nulls con demo sin contaminar producción
+OBD_DEMO_FILL_MISSING = os.getenv("OBD_DEMO_FILL_MISSING", "0") == "1"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
