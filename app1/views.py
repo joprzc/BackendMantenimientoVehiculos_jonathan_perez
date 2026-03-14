@@ -12,6 +12,9 @@ from django.contrib import messages  # para mensajes flash
 from django.utils.dateparse import parse_date
 from django.db.models import Avg, Count
 from django.db.models.functions import TruncHour
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
 # vistas del dashboard de OBD-II
 from app1.models import obddata, Vehiculo, RecomendacionMantenimiento
@@ -28,6 +31,8 @@ from app1.services.obd_chart_service import get_obd_chart_data
 
 
 # Create your views here.
+@api_view(["GET"])
+@permission_classes([AllowAny])
 @login_required(
     login_url="login"
 )  # evita que ingresemos directamente a la pagina inicio
@@ -151,8 +156,6 @@ def mantenimiento_delete(request, id):
 
 
 # VAHICULOS
-
-
 # pagina principal de vehiculo
 def vehiculo_index(request, id):
     # vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_id)
@@ -312,7 +315,7 @@ def api_rpm_promedio(request):
     return JsonResponse({"labels": labels, "values": values})
 
 
-@login_required(login_url="login")
+# @login_required(login_url="login")
 # engine_temp_c
 def api_temp_motor(request):
     qs = _get_filters(request)
@@ -351,7 +354,7 @@ def api_velocidad_promedio(request):
     return JsonResponse({"labels": labels, "values": values})
 
 
-@login_required(login_url="login")
+# @login_required(login_url="login")
 # coolant_temp_c
 def api_temp_refrigerante(request):
     qs = _get_filters(request)
@@ -359,7 +362,7 @@ def api_temp_refrigerante(request):
     return JsonResponse({"labels": labels, "values": values})
 
 
-@login_required(login_url="login")
+# @login_required(login_url="login")
 # oil_pressure_psi
 def api_presion_aceite(request):
     qs = _get_filters(request)

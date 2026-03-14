@@ -1,5 +1,8 @@
-from django.db import connections, transaction
+from __future__ import annotations
+from typing import Any, Dict, Optional
+
 from django.utils import timezone
+from django.db import connections, transaction
 from app1.models import Vehiculo
 
 from django.conf import settings

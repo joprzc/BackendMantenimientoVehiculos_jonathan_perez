@@ -36,16 +36,29 @@ class OBDIngestAPIView(APIView):
         max_skew = getattr(settings, "OBD_INGEST_MAX_SKEW_SECONDS", 300)
         ts = payload["timestamp"]
         skew = abs((timezone.now() - ts).total_seconds())
+
+        # Allow historical/demo timestamps ONLY in DEBUG and when X-DEMO header is set
+        is_demo = request.headers.get("X-DEMO") == "1"
+
         if skew > max_skew:
-            return Response(
-                # {
-                #     "detail": f"Timestamp fuera de rango (skew {int(skew)}s > {max_skew}s)"
-                # },
-                {
-                    "detail": f"Timestamp fuera de rango (skew {int(skew)}s > {max_skew}s)"
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            # return Response(
+            #     # {
+            #     #     "detail": f"Timestamp fuera de rango (skew {int(skew)}s > {max_skew}s)"
+            #     # },
+            #     {
+            #         "detail": f"Timestamp fuera de rango (skew {int(skew)}s > {max_skew}s)"
+            #     },
+            #     status=status.HTTP_400_BAD_REQUEST,
+            # )
+            if getattr(settings, "DEBUG", False) and is_demo:
+                print(f"[ingest] DEMO mode: bypassing skew check ({int(skew)}s)")
+            else:
+                return Response(
+                    {
+                        "detail": f"Timestamp fuera de rango (skew {int(skew)}s > {max_skew}s)"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         print("INGEST DATA:", request.data)  # debug
 
