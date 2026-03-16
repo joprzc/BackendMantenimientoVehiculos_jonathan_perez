@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: mantenimiento-vehicular
+    runtime: python
+    buildCommand: "./build.sh"
+    # startCommand: "gunicorn tu_proyecto.wsgi:application"
+    startCommand: "gunicorn registro.wsgi:application"
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: DEBUG
+        value: "False"
