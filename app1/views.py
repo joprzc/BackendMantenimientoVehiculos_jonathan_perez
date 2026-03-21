@@ -31,8 +31,8 @@ from app1.services.obd_chart_service import get_obd_chart_data
 
 
 # Create your views here.
-@api_view(["GET"])
-@permission_classes([AllowAny])
+# @api_view(["GET"])
+# @permission_classes([AllowAny])
 @login_required(
     login_url="login"
 )  # evita que ingresemos directamente a la pagina inicio
@@ -82,8 +82,15 @@ def LoginPage(request):
         # lee los valores enviados desde el formulario
         username = request.POST.get("username")
         pass1 = request.POST.get("pass")
+
+        # temporal
+        print("DEBUG username:", username)
+        print("DEBUG pass enviada:", bool(pass1))
+
         # print(username,pass1)
         user = authenticate(request, username=username, password=pass1)
+        print("DEBUG user autenticado:", user)
+
         if user is not None:
             login(request, user)
             return redirect("inicio")
