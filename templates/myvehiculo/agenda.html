@@ -1,40 +1,48 @@
-{% block content %}
-
-<div class="container mt-4">
-    
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Vehículo</th>
-                <th>Descripción</th>
-                <th>Fecha Programada</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for mantenimiento in mantenimientos %}
-            <tr>
-                <td>{{ mantenimiento.vehiculo }}</td>
-                <td>{{ mantenimiento.descripcion }}</td>
-                <td>{{ mantenimiento.fecha }}</td>
-
-                <td>
-                    <a href="{% url 'mantenimiento_edit' mantenimiento.id %}" class="btn btn-primary btn-sm">Editar</a>
-                    <form action="{% url 'mantenimiento_delete' mantenimiento.id %}" method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                    </form>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4">No hay mantenimientos programados.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <a href="{% url 'mantenimiento_create' %}" class="btn btn-success">Agregar Mantenimiento</a>
 
 
-{% endblock %}
+    <div class="container mt-4">
+        
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Vehículo</th>
+                    <th>Descripción</th>
+                    <th>Fecha Programada</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in mantenimientos %}
+                    <tr>
+                        <td>{{ m.vehiculo }}</td>
+                        <td>{{ m.descripcion }}</td>
+                        <td>{{ m.fecha }}</td>
+
+                        <td>
+                            
+                            <div class="d-flex gap-1 flex-wrap">
+                                <a href="{% url 'mantenimiento_edit' m.id %}" class="btn btn-warning btn-sm">Editar</a>
+
+                                <form method="post" action="{% url 'mantenimiento_send_notification' m.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-info btn-sm">Notificar</button>
+                                </form>
+
+                                <form method="post" action="{% url 'mantenimiento_delete' m.id %}" class="d-inline" onsubmit="return confirm('¿Eliminar este mantenimiento?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                                </form>
+                            </div>
+
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No hay mantenimientos programados.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{% url 'mantenimiento_create' %}" class="btn btn-success">Agregar Mantenimiento</a>
+    </div>
 

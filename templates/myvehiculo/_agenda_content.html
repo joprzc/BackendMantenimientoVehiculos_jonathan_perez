@@ -13,14 +13,29 @@
             </tr>
         </thead>
         <tbody>
-            {% for m in mantenimento %}
+            <!-- {% for m in mantenimento %} -->
+            {% for m in mantenimientos %}
             <tr>
                 <td>{{ m.fecha }}</td>
                 <td>{{ m.descripcion }}</td>
                 <td>{{ m.estado }}</td>
                 <td>
-                    <a href="{% url 'mantenimiento_edit' m.id %}" class="btn btn-warning btn-sm">Editar</a>
-                    <a href="{% url 'mantenimiento_delete' m.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                    <!-- <a href="{% url 'mantenimiento_edit' m.id %}" class="btn btn-warning btn-sm">Editar</a> -->
+                    <!-- <a href="{% url 'mantenimiento_delete' m.id %}" class="btn btn-danger btn-sm">Eliminar</a> -->
+                    <div class="d-flex gap-1 flex-wrap">
+                        <a href="{% url 'mantenimiento_edit' m.id %}" class="btn btn-warning btn-sm">Editar</a>
+                    
+                        <form method="post" action="{% url 'mantenimiento_send_notification' m.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-info btn-sm">Notificar</button>
+                        </form>
+                    
+                        <form method="post" action="{% url 'mantenimiento_delete' m.id %}" class="d-inline"
+                            onsubmit="return confirm('¿Eliminar este mantenimiento?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             {% empty %}

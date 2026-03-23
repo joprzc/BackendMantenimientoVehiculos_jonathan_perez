@@ -1,6 +1,8 @@
 from ast import If
 from operator import ge
 from django.http import JsonResponse, HttpResponse, HttpResponseNotAllowed
+from django.core.mail import send_mail
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
@@ -125,10 +127,12 @@ def mantenimiento_create(request):
     if request.method == "POST":
         form = MantenimientoForm(request.POST)
         if form.is_valid():
-            form.save()
+            # form.save()
+            mantenimiento = form.save()
             messages.success(request, "Mantenimiento creado exitosamente.")
             # return redirect("agenda")
-            return redirect("vehiculo_index", id=form.cleaned_data["vehiculo"].id)
+            # return redirect("vehiculo_index", id=form.cleaned_data["vehiculo"].id)
+            return redirect("vehiculo_index", id=mantenimiento.vehiculo.id)
     else:
         form = MantenimientoForm()
 
@@ -148,7 +152,8 @@ def mantenimiento_edit(request, id):
     if form.is_valid():
         form.save()
         messages.success(request, "Mantenimiento actualizado exitosamente.")
-        return redirect("vehiculo_index", id=form.cleaned_data["vehiculo"].id)
+        # return redirect("vehiculo_index", id=form.cleaned_data["vehiculo"].id)
+        return redirect("vehiculo_index", id=mantenimiento.vehiculo.id)
     return render(request, "mantenimiento_form.html", {"form": form})
 
 
@@ -160,6 +165,66 @@ def mantenimiento_delete(request, id):
     mantenimiento.delete()
     messages.success(request, "Mantenimiento eliminado exitosamente.")
     return redirect("vehiculo_index", id=vehiculo_id)
+
+
+# Notificar mantenimiento por email
+@login_required(login_url="login")
+@require_POST
+def mantenimiento_send_notification(request, id):
+    mantenimiento = get_object_or_404(Mantenimiento, id=id)
+    vehiculo = mantenimiento.vehiculo
+
+    # destinatario = request.user.email
+    destinatario = mantenimiento.vehiculo.usuario.email
+    if not destinatario:
+        messages.error(
+            request,
+            "Tu usuario no tiene un correo configurado. Actualiza tu email para enviar notificaciones.",
+        )
+        # return redirect("vehiculo_index", id=vehiculo.id)
+        return redirect("vehiculo_index", id=mantenimiento.vehiculo.id)
+
+    asunto = f"Recordatorio de mantenimiento - {vehiculo}"
+    mensaje = (
+        "Se ha generado una notificación de mantenimiento para el siguiente vehículo:\n\n"
+        f"Vehículo: {vehiculo}\n"
+        f"Fecha: {mantenimiento.fecha}\n"
+        f"Descripción: {mantenimiento.descripcion}\n"
+        f"Estado: {mantenimiento.estado}\n"
+    )
+
+    remitente = getattr(settings, "DEFAULT_FROM_EMAIL", None)
+
+    try:
+        send_mail(
+            # subject=asunto,
+            # message=mensaje,
+            # from_email=remitente,
+            # recipient_list=[destinatario],
+            # fail_silently=False,
+            subject="Recordatorio de mantenimiento",
+            # message=f"Tienes un mantenimiento programado:\n\n{mantenimiento.descripcion}\nFecha: {mantenimiento.fecha}",
+            message=(
+                f"Tienes un mantenimiento programado.\n\n"
+                f"Vehículo: {mantenimiento.vehiculo}\n"
+                f"Descripción: {mantenimiento.descripcion}\n"
+                f"Fecha: {mantenimiento.fecha}"
+            ),
+            from_email=None,  # usa DEFAULT_FROM_EMAIL
+            # recipient_list=["jonathan.przc@gmail.com"],  # prueba contigo mismo
+            recipient_list=[destinatario],
+            fail_silently=False,
+        )
+        print("EMAIL ENVIADO OK")
+        messages.success(
+            request, f"Notificación enviada correctamente a {destinatario}."
+        )
+    except Exception as e:
+        print("ERROR EMAIL:", e)
+        messages.error(request, f"No se pudo enviar el correo: {e}")
+
+    # return redirect("vehiculo_index", id=vehiculo.id)
+    return redirect("vehiculo_index", id=mantenimiento.vehiculo.id)
 
 
 # VAHICULOS

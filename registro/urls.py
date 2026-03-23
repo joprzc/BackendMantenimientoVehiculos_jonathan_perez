@@ -43,6 +43,11 @@ urlpatterns = [
         views.mantenimiento_delete,
         name="mantenimiento_delete",
     ),
+    path(
+        "agenda/notificar/<int:id>/",
+        views.mantenimiento_send_notification,
+        name="mantenimiento_send_notification",
+    ),
     # Rutas para vehículos
     path("vehiculos/nuevo/", views.vehiculo_create, name="vehiculo_create"),
     path("vehiculos/editar/<int:id>/", views.vehiculo_edit, name="vehiculo_edit"),

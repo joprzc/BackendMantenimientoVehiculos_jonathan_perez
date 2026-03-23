@@ -2,12 +2,16 @@ from encodings.punycode import T
 from operator import index
 from django import db
 from django.db import models
+from django.contrib.auth.models import User
 
 import app1
 
 
 # modelo estructura de tabla para vehiculos
 class Vehiculo(models.Model):
+
+    # relacion con usuario
+    # usuario = models.ForeignKey()
 
     anio = models.IntegerField()
     # marca = models.CharField(max_length=50, unique=True)
