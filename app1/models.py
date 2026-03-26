@@ -3,6 +3,7 @@ from operator import index
 from django import db
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings
 
 import app1
 
@@ -11,7 +12,16 @@ import app1
 class Vehiculo(models.Model):
 
     # relacion con usuario
-    # usuario = models.ForeignKey()
+    # usuario = models.ForeignKey(
+    #     User, on_delete=models.CASCADE, related_name="vehiculos"
+    # )
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="vehiculos",
+        null=True,
+        blank=True,
+    )
 
     anio = models.IntegerField()
     # marca = models.CharField(max_length=50, unique=True)
@@ -45,8 +55,13 @@ class Vehiculo(models.Model):
 # modelo estructura de tabla para agendar mantenimientos
 class Mantenimiento(models.Model):
 
+    # vehiculo = models.ForeignKey(
+    #     Vehiculo, on_delete=models.CASCADE, related_name="mantenimientos"
+    # )
     vehiculo = models.ForeignKey(
-        Vehiculo, on_delete=models.CASCADE, related_name="mantenimientos"
+        Vehiculo,
+        on_delete=models.CASCADE,
+        related_name="mantenimientos",
     )
 
     fecha = models.DateField()

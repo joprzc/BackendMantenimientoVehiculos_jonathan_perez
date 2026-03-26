@@ -43,13 +43,17 @@ def InicioPage(request):
         return redirect("login")
 
     # listar vehiculos
-    vehiculos = Vehiculo.objects.all()
+    # vehiculos = Vehiculo.objects.all()
+    vehiculos = Vehiculo.objects.filter(usuario=request.user)
     form = VehiculoForm()
 
     if request.method == "POST":
         form = VehiculoForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            # form.save()
+            vehiculo = form.save(commit=False)
+            vehiculo.usuario = request.user  # asigna el usuario actual al vehículo
+            vehiculo.save()
             return redirect("inicio")
 
     return render(request, "inicio.html", {"vehiculos": vehiculos, "form": form})
@@ -172,22 +176,26 @@ def mantenimiento_delete(request, id):
 @require_POST
 def mantenimiento_send_notification(request, id):
     mantenimiento = get_object_or_404(Mantenimiento, id=id)
-    vehiculo = mantenimiento.vehiculo
+    # vehiculo = mantenimiento.vehiculo
 
     # destinatario = request.user.email
-    destinatario = mantenimiento.vehiculo.usuario.email
+    # destinatario = mantenimiento.vehiculo.usuario.email
+    destinatario = ""
+    if mantenimiento.vehiculo.usuario:
+        destinatario = mantenimiento.vehiculo.usuario.email
+
     if not destinatario:
         messages.error(
             request,
-            "Tu usuario no tiene un correo configurado. Actualiza tu email para enviar notificaciones.",
+            "Tu usuario no tiene un correo registrado. Actualiza tu email para enviar notificaciones.",
         )
         # return redirect("vehiculo_index", id=vehiculo.id)
         return redirect("vehiculo_index", id=mantenimiento.vehiculo.id)
 
-    asunto = f"Recordatorio de mantenimiento - {vehiculo}"
+    asunto = f"Recordatorio de mantenimiento - {Vehiculo}"
     mensaje = (
         "Se ha generado una notificación de mantenimiento para el siguiente vehículo:\n\n"
-        f"Vehículo: {vehiculo}\n"
+        f"Vehículo: {Vehiculo}\n"
         f"Fecha: {mantenimiento.fecha}\n"
         f"Descripción: {mantenimiento.descripcion}\n"
         f"Estado: {mantenimiento.estado}\n"
@@ -216,9 +224,10 @@ def mantenimiento_send_notification(request, id):
             fail_silently=False,
         )
         print("EMAIL ENVIADO OK")
-        messages.success(
-            request, f"Notificación enviada correctamente a {destinatario}."
-        )
+        print("DEBUG destinatario:", destinatario)
+        # messages.success(
+        #     request, f"Notificación enviada correctamente a {destinatario}."
+        # )
     except Exception as e:
         print("ERROR EMAIL:", e)
         messages.error(request, f"No se pudo enviar el correo: {e}")
