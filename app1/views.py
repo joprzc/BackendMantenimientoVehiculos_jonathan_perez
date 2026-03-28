@@ -272,7 +272,10 @@ def vehiculo_create(request):
     if request.method == "POST":
         form = VehiculoForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            # form.save()
+            vehiculo = form.save(commit=False)
+            vehiculo.usuario = request.user  # asigna el usuario actual al vehículo
+            vehiculo.save()
             messages.success(request, "Vehículo creado exitosamente.")
             return redirect("inicio")
     else:
@@ -292,11 +295,15 @@ def vehiculo_create(request):
 
 
 def vehiculo_edit(request, id):
-    vehiculo = get_object_or_404(Vehiculo, id=id)
+    # vehiculo = get_object_or_404(Vehiculo, id=id)
+    vehiculo = get_object_or_404(Vehiculo, id=id, usuario=request.user)
     if request.method == "POST":
         form = VehiculoForm(request.POST, request.FILES, instance=vehiculo)
         if form.is_valid():
-            form.save()
+            # form.save()
+            vehiculo_editado = form.save(commit=False)
+            vehiculo_editado.usuario = request.user  # asegura que el usuario no cambie
+            vehiculo_editado.save()
             messages.success(request, "Vehículo actualizado exitosamente.")
             return redirect("vehiculo_index", id=vehiculo.pk)  # Primary Key
     else:
