@@ -63,19 +63,28 @@
 
   <!-- cargar el formulario para agregar vehiculo -->
   <script>
+    function mostrarVehiculoModal(html) {
+      const content = document.getElementById("vehiculoModalContent");
+      const modalEl = document.getElementById("vehiculoModal");
+      if (!content || !modalEl) return;
+
+      content.innerHTML = html;
+
+      // Reutiliza la misma instancia y limpia cualquier backdrop huérfano
+      document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
+      document.body.classList.remove("modal-open");
+      document.body.style.removeProperty("padding-right");
+
+      const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+      modal.show();
+    }
 
     // agregar vehiculo
     function cargarFormularioVehiculo() {
       fetch("{% url 'vehiculo_create' %}")
         .then((response) => response.text())
         .then((html) => {
-          document.getElementById("vehiculoModalContent").innerHTML =
-            html;
-
-          const modal = new bootstrap.Modal(
-            document.getElementById("vehiculoModal")
-          );
-          modal.show();
+          mostrarVehiculoModal(html);
         });
     }
 
@@ -84,12 +93,7 @@
       fetch(`/vehiculos/editar/${id}/`)
         .then((response) => response.text())
         .then((html) => {
-          document.getElementById("vehiculoModalContent").innerHTML = html;
-
-          const modal = new bootstrap.Modal(
-            document.getElementById("vehiculoModal")
-          );
-          modal.show();
+          mostrarVehiculoModal(html);
         });
     }
 
@@ -138,6 +142,15 @@
       }
       return cookieValue;
     }
+
+    // Asegura que al cerrar el modal se limpien las capas oscuras/backdrop
+    document.addEventListener("hidden.bs.modal", (event) => {
+      if (event.target.id !== "vehiculoModal") return;
+
+      document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
+      document.body.classList.remove("modal-open");
+      document.body.style.removeProperty("padding-right");
+    });
 
   </script>
 
