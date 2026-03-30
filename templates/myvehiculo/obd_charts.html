@@ -20,20 +20,34 @@
                 <form id="filtersForm" class="row g-2">
                     <div class="col-md-4">
                         <label class="form-label">Vehiculo</label>
-                        <select class="form-control" id="vehiculoId">
-                            {% for v in vehiculos %}
-                                <option value="{{ v.id }}">{{ v.placa }}</option>
-                            {% endfor %}
-                        </select>
+                        {% for v in vehiculos %}
+                            {% if request.GET.vehiculo_id == v.id|stringformat:"s" %}
+                                <input type="text" class="form-control" value="{{ v.placa }}" readonly>
+                                <input type="hidden" id="vehiculoId" value="{{ v.id }}">
+                            {% elif not request.GET.vehiculo_id %}
+                                <input type="text" class="form-control" value="{{ v.placa }}" readonly>
+                                <input type="hidden" id="vehiculoId" value="{{ v.id }}">
+                            {% endif %}
+                        {% endfor %}
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Desde</label>
-                        <input type="date" class="form-control" id="fechaInicio">
+                        <input
+                            type="date"
+                            class="form-control"
+                            id="fechaInicio"
+                            value="{{ request.GET.fecha_inicio|default:default_start_str }}"
+                        >
                     </div>
 
                     <div class="col-md-3">
                         <label class="form-label">Hasta</label>
-                        <input type="date" class="form-control" id="fechaFin">
+                        <input
+                            type="date"
+                            class="form-control"
+                            id="fechaFin"
+                            value="{{ request.GET.fecha_fin|default:default_end_str }}"
+                        >
                     </div>
 
                     <div class="col-md-2 d-flex align-items-end">
@@ -119,4 +133,6 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{% static 'adminlte/js/obd_charts.js' %}"></script>
+{% endblock %}
+
 {% endblock %}

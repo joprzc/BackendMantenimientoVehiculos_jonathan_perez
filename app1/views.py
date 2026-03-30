@@ -12,6 +12,7 @@ from .forms import MantenimientoForm, VehiculoForm
 from django.views.decorators.http import require_POST  # bloquea metodos no permitidos
 from django.contrib import messages  # para mensajes flash
 from django.utils.dateparse import parse_date
+from datetime import date, timedelta
 from django.db.models import Avg, Count
 from django.db.models.functions import TruncHour
 from rest_framework.decorators import api_view, permission_classes
@@ -336,7 +337,35 @@ def vehiculo_delete(request, id):
 # vista de graficos OBD-II
 def obd_charts_view(request):
     vehiculos = Vehiculo.objects.all().order_by("placa")
-    return render(request, "myvehiculo/obd_charts.html", {"vehiculos": vehiculos})
+
+    # Rango por defecto: última semana hasta hoy
+    today = date.today()
+    default_end = today
+    default_start = today - timedelta(days=7)
+
+    return render(
+        request,
+        "myvehiculo/obd_charts.html",
+        {
+            "vehiculos": vehiculos,
+            "default_start_str": default_start.isoformat(),
+            "default_end_str": default_end.isoformat(),
+        },
+    )
+
+    # today = date.today()
+    # default_end = today
+    # default_start = today - timedelta(days=7)
+
+    # return render(
+    #     request,
+    #     "myvehiculo/obd_charts.html",
+    #     {
+    #         "vehiculos": vehiculos,
+    #         "default_start_str": default_start.isoformat(),
+    #         "default_end_str": default_end.isoformat(),
+    #     },
+    # )
 
 
 # graficos adminLTE
@@ -354,6 +383,16 @@ def _get_filters(request):
     vehiculo_id = request.GET.get("vehiculo_id")
     fi = parse_date(request.GET.get("fecha_inicio") or "")
     ff = parse_date(request.GET.get("fecha_fin") or "")
+
+    # Rango por defecto: última semana hasta hoy si no se envían fechas
+    if not fi and not ff:
+        ff = date.today()
+        fi = ff - timedelta(days=7)
+    else:
+        # Evita traer registros futuros si llega una fecha_fin posterior a hoy
+        today = date.today()
+        if ff and ff > today:
+            ff = today
 
     # Base queryset
     qs = obddata.objects.all()

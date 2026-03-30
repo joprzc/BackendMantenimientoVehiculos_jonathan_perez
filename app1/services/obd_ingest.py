@@ -25,10 +25,14 @@ COLUMNS = [
 
 
 # En el endpoint, guardar vehiculo_id si existe obd_code
+# def resolve_vehiculo_id(vehicle_code: str):
+#     if not vehicle_code:
+#         return None
+#     v = Vehiculo.objects.filter(obd_code=vehicle_code).only("id").first()
+#     return v.id if v else None
 def resolve_vehiculo_id(vehicle_code: str):
-    if not vehicle_code:
-        return None
-    v = Vehiculo.objects.filter(obd_code=vehicle_code).only("id").first()
+    placa = (vehicle_code or "").strip().upper()
+    v = Vehiculo.objects.filter(placa__iexact=placa).only("id").first()
     return v.id if v else None
 
 

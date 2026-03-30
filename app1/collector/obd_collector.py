@@ -9,7 +9,9 @@ from datetime import datetime, timezone
 # =============================
 API_URL = os.getenv("OBD_API_URL", "http://127.0.0.1:8000/api/obd/ingest/")
 INGEST_KEY = os.getenv("OBD_INGEST_API_KEY", "")
-VEHICLE_CODE = os.getenv("OBD_VEHICLE_CODE", "DEMO-000")
+# VEHICLE_CODE = os.getenv("OBD_VEHICLE_CODE", "DEMO-000")
+# vehicle_code debe ser la placa real del vehiculo registrado
+VEHICLE_CODE = os.getenv("OBD_VEHICLE_CODE", "").strip().upper()
 INTERVAL_SECONDS = float(os.getenv("OBD_INTERVAL_SECONDS", "2.0"))
 
 FIXED_TIMESTAMP = os.getenv("OBD_FIXED_TIMESTAMP", "").strip()
@@ -53,6 +55,7 @@ def post_payload(payload: dict):
         return {"dry_run": True, "payload": payload}
 
     resp = requests.post(API_URL, json=payload, headers=headers, timeout=10)
+    resp.raise_for_status()
 
     # On error, raise with response body included (very helpful for 400 validation errors)
     if resp.status_code >= 400:
@@ -64,7 +67,7 @@ def post_payload(payload: dict):
     try:
         return resp.json()
     except Exception:
-        return {"status_code": resp.status_code}
+        return {"status_code": resp.status_code, "text": resp.text}
 
 
 # =============================
@@ -88,6 +91,12 @@ def main():
 
     if SEND_ONCE:
         print("[collector] SEND_ONCE=1 (will send one reading and exit)")
+
+    if not VEHICLE_CODE:
+        print(
+            "[collector] ERROR: OBD_VEHICLE_CODE no definido. Debe ser la placa real del vehículo."
+        )
+        return
 
     while True:
         payload = build_demo_payload()
