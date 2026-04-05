@@ -3,11 +3,16 @@ from typing import Any, Dict, Optional
 
 from django.utils import timezone
 from django.db import connections, transaction
-from app1.models import Vehiculo
+from app1.models import Vehiculo, obddata
 
 from django.conf import settings
 
-# ======================== PRODUCCION ==================================
+from django.utils.dateparse import parse_datetime
+
+
+# ==================================
+# PRODUCCION
+# ==================================
 OBD_TABLE_NAME = "obd_data"
 
 COLUMNS = [
@@ -76,7 +81,32 @@ def insert_obd_row(payload: dict) -> dict:
     return {"id": row[0] if row else None, "timestamp": row[1] if row else None}
 
 
-# ======================= DEMO (rellenar nulls) ==================================
+# wrapper ORM llama internamente a la misma logica y corrija variables
+# def save_obd_payload(payload: dict):
+#     data = apply_demo_defaults_if_enabled(dict(payload))
+#     vehicle_code = (data.get("vehicle_code") or "").strip().upper()
+#     vehiculo_id = resolve_vehiculo_id(vehicle_code=vehicle_code)
+#     ts = data.get("timestamp")
+#     timestamp = parse_datetime(ts) if isinstance(ts, str) else ts or timezone.now()
+
+#     return obddata.objects.create(
+#         vehiculo_id=vehiculo_id,  # acepta int o None
+#         vehicle_code=vehicle_code,
+#         timestamp=timestamp,
+#         engine_rpm=data.get("engine_rpm"),
+#         vehicle_speed_kph=data.get("vehicle_speed_kph"),
+#         engine_temp_c=data.get("engine_temp_c"),
+#         # coolant_temp_c=data.get("engine_temp_c"),  # reflejar mismo valor
+#         fuel_level_percent=data.get("fuel_level_percent"),
+#         battery_voltage_v=data.get("battery_voltage_v"),
+#         oil_pressure_psi=data.get("oil_pressure_psi"),
+#         engine_failure_imminent=data.get("engine_failure_imminent", False),
+#     )
+
+
+# ==================================
+# DEMO (rellenar nulls)
+# ==================================
 DEMO_DEFAULTS = {
     "engine_rpm": 900.0,
     "engine_temp_c": 85.0,

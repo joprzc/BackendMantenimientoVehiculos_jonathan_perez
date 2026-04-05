@@ -43,6 +43,15 @@
                 {% endfor %}
             </tbody>
         </table>
-        <a href="{% url 'mantenimiento_create' %}" class="btn btn-success">Agregar Mantenimiento</a>
+        
+        {% if vehiculo %}
+            <a href="{% url 'mantenimiento_create' %}?next={% url 'vehiculo_index' vehiculo.id %}#schedulemaintenance-tab-pane"
+               class="btn btn-success">
+               Agregar Mantenimiento
+            </a>
+        {% else %}
+            <a href="{% url 'mantenimiento_create' %}" class="btn btn-success">
+               Agregar Mantenimiento
+            </a>
+        {% endif %}
     </div>
-

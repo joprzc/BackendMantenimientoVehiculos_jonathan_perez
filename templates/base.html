@@ -29,9 +29,7 @@
         filter: invert(1);
       }
 
-      /* .border-dashed {
-			border: 2px dashed #ccc;
-		} */
+
 
       /* efecto para cards */
       .card-fixed {
@@ -152,6 +150,15 @@
       document.body.style.removeProperty("padding-right");
     });
 
+  </script>
+  <!-- alertas del sistema -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll(".alert").forEach((el) => {
+        const inst = bootstrap.Alert.getOrCreateInstance(el);
+        setTimeout(() => inst.close(), 4000);
+      });
+    });      
   </script>
 
 {% block extra_js %}{% endblock %}

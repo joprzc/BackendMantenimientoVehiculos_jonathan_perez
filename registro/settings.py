@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+
 import dj_database_url
 from dotenv import load_dotenv
 
@@ -39,16 +40,24 @@ OBD_DEMO_FILL_MISSING = os.getenv("OBD_DEMO_FILL_MISSING", "0") == "1"
 
 # DEBUG = True
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    ".onrender.com",  # para despliegue en render.com
-]
+# ALLOWED_HOSTS = [
+#     "localhost",
+#     "127.0.0.1",
+#     ".onrender.com",  # para despliegue en render.com
+# ]
+
+ALLOWED_HOSTS = os.getenv(
+    "ALLOWED_HOSTS", "localhost,127.0.0.1,1.0.0.127.in-addr.arpa,.onrender.com"
+).split(",")
 
 # CSRF para Render
-CSRF_TRUSTED_ORIGINS = [
-    "https://*.onrender.com",
-]
+# CSRF_TRUSTED_ORIGINS = [
+#     "https://*.onrender.com",
+# ]
+
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    "CSRF_TRUSTED_ORIGINS", "https://*.onrender.com,http://1.0.0.127.in-addr.arpa:8000"
+).split(",")
 
 # Application definition
 
@@ -80,10 +89,16 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
 ]
 
+# CORS_ALLOWED_ORIGINS = [
+#     # emuladores locales
+#     "http://10.0.2.2:8080",
+#     "http://localhost:8080",
+# ]
+
 CORS_ALLOWED_ORIGINS = [
-    # emuladores locales
     "http://10.0.2.2:8080",
     "http://localhost:8080",
+    "http://1.0.0.127.in-addr.arpa:8000",  # opcional si us0 front en ese host
 ]
 
 REST_FRAMEWORK = {

@@ -1,0 +1,64 @@
+<div class="modal fade" id="obdConnectModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Conectar OBDLink MX+ · {{ vehiculo.placa }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card h-100 border-success">
+              <div class="card-body">
+                <h6 class="text-success mb-2">Bluetooth (recomendado)</h6>
+                <ol class="small mb-2">
+                  <li>Enciende el vehículo y el OBDLink.</li>
+                  <li>Empareja el dispositivo en el SO (Windows/Mac/Linux).</li>
+                  <li>Confirma el puerto serie detectado (ej: COM5 /dev/ttyUSB0).</li>
+                </ol>
+                <div class="bg-light p-2 rounded small">
+                  `export OBD_PORT="/dev/ttyUSB0"`<br>
+                  `export OBD_VEHICLE_CODE="{{ vehiculo.obd_code|default:vehiculo.placa }}"`<br>
+                  `python manage.py collect_obd --vehicle {{ vehiculo.id }}`
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="card h-100 border-info">
+              <div class="card-body">
+                <h6 class="text-info mb-2">Wi‑Fi / TCP</h6>
+                <ol class="small mb-2">
+                  <li>Conéctate a la red del OBDLink.</li>
+                  <li>Identifica IP y puerto (por defecto 192.168.x.x:35000).</li>
+                  <li>Prueba conectividad: `nc -vz $OBD_WIFI_HOST $OBD_WIFI_PORT`.</li>
+                </ol>
+                <div class="bg-light p-2 rounded small">
+                  `export OBD_WIFI_HOST="192.168.0.10"`<br>
+                  `export OBD_WIFI_PORT="35000"`<br>
+                  `python manage.py collect_obd --vehicle {{ vehiculo.id }}`
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-secondary mt-3 mb-0 small">
+          Último dato OBD:
+          {% if last_obd %}
+            {{ last_obd.timestamp|date:"Y-m-d H:i" }}
+          {% else %}
+            sin registros vinculados aún.
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <a class="btn btn-primary" href="{% url 'obd_charts' %}?vehiculo_id={{ vehiculo.id }}">Ver gráficas</a>
+      </div>
+    </div>
+  </div>
+</div>

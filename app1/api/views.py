@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import BasePermission
+from rest_framework.parsers import JSONParser
 
 from .serializers import OBDIngestSerializer
 from app1.services.obd_ingest import insert_obd_row
@@ -26,8 +27,15 @@ class HasIngestKey(BasePermission):
 
 class OBDIngestAPIView(APIView):
     permission_classes = [HasIngestKey]
+    parser_classes = [JSONParser]
 
     def post(self, request):
+        if "json" not in (request.content_type or ""):
+            return Response(
+                {"detail": "Envia Content-Type: application/json"},
+                status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            )
+
         ser = OBDIngestSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         payload = ser.validated_data

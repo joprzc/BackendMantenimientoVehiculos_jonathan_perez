@@ -139,6 +139,13 @@ button{
         <div class="shape"></div>
         <div class="shape"></div>
     </div>
+    {% if messages %}
+        <div id="flash-messages">
+            {% for message in messages %}
+                <div class="flash {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
     <form method="post">
         <h3>Login Here</h3>
         {% csrf_token %} 
@@ -156,5 +163,14 @@ button{
         </div> -->
         <a href="{% url 'signup' %}" >Create a account</a>
     </form>
+    <style>
+        #flash-messages {position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 360px;}.flash {padding: 12px 14px; margin-bottom: 8px; border-radius: 8px; border-radius: 8px; background: #e74c3c; color: #fff; font-size: 14px;}
+    </style>
+    <script>
+        // Eliminar mensajes flash después de 4 segundos
+        setTimeout(() => {
+            document.querySelectorAll('.flash').forEach(el => el.remove());
+        }, 4000);
+    </script>
 </body>
 </html>

@@ -36,7 +36,12 @@ class Vehiculo(models.Model):
 
     # necesario para RF22
     tipo_comsbustible = models.CharField(max_length=20, default="Gasolina")
-    imagen = models.ImageField(upload_to="vehiculos/", blank=True, null=True)
+    imagen = models.ImageField(
+        upload_to="vehiculos/",
+        blank=True,
+        null=True,
+        default="vehiculos/imgdefault.png",
+    )
 
     # anotacions de tipo para evitar errores de pylance
     mantenimientos: models.Manager["Mantenimiento"]

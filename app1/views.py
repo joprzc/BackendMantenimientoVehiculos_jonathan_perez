@@ -15,6 +15,7 @@ from django.utils.dateparse import parse_date
 from datetime import date, timedelta
 from django.db.models import Avg, Count
 from django.db.models.functions import TruncHour
+from django.urls import reverse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -103,7 +104,8 @@ def LoginPage(request):
             return redirect("inicio")
         else:
             messages.error(request, "Usuario o clave es incorrecto")
-            return redirect("login")
+            # return redirect("login")
+            return render(request, "login.html")
 
     return render(request, "login.html")
 
@@ -118,26 +120,40 @@ def LogoutPage(request):
 # listar
 def agenda(request):
     mantenimientos = Mantenimiento.objects.select_related("vehiculo").all()
-    return render(
-        request,
-        "agenda.html",
-        {
-            "mantenimientos": mantenimientos,
-        },
-    )
+    # return render(
+    #     request,
+    #     "agenda.html",
+    #     {
+    #         "mantenimientos": mantenimientos,
+    #     },
+    # )
+    return render(request, "myvehiculo/agenda.html", {"mantenimientos": mantenimientos})
 
 
 # crear
 def mantenimiento_create(request):
+    # cancel_url = request.GET.get("next") or reverse("agenda")
+    cancel_url = (
+        request.GET.get("next")
+        or reverse("vehiculo_index", args=[vehiculo_id])
+        or reverse("agenda")
+    )
+
     if request.method == "POST":
         form = MantenimientoForm(request.POST)
         if form.is_valid():
             # form.save()
             mantenimiento = form.save()
             messages.success(request, "Mantenimiento creado exitosamente.")
+            next_url = (
+                request.POST.get("next")
+                or cancel_url
+                or reverse("vehiculo_index", args=[mantenimiento.vehiculo.id])
+            )
+            return redirect(next_url)
             # return redirect("agenda")
             # return redirect("vehiculo_index", id=form.cleaned_data["vehiculo"].id)
-            return redirect("vehiculo_index", id=mantenimiento.vehiculo.id)
+            # return redirect("vehiculo_index", id=mantenimiento.vehiculo.id)
     else:
         form = MantenimientoForm()
 
@@ -146,6 +162,7 @@ def mantenimiento_create(request):
         "mantenimiento_form.html",
         {
             "form": form,
+            "cancel_url": cancel_url,
         },
     )
 
@@ -263,7 +280,8 @@ def vehiculo_index(request, id):
     }
 
     # mismo contexto para _dashboard_content.html
-    context.update(build_dashboard_context(vehiculo))
+    # context.update(build_dashboard_context(vehiculo))
+    context["obd_code"] = vehiculo.obd_code or vehiculo.placa
 
     return render(request, "myvehiculo/vehiculoindex.html", context)
 

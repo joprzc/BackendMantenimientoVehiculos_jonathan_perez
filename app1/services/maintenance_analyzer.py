@@ -1,166 +1,159 @@
-# 1 Crear el módulo de análisis
-# 2 importar dependencias
-from django.db.models import Max, Min
-from django.utils import timezone
 from datetime import timedelta
 
-from app1.models import obddata
-from app1.models import obddata, RecomendacionMantenimiento, Vehiculo
-from app1.services.maintenance_rules import evaluar_mantenimiento
-from app1.services.recommendation_repository import guardar_recomendacion
+from django.db.models import Max, Min
+from django.utils import timezone
 
-# variables advertencia
-ESTADO_PENDIENTE = "Pendiente"
-ESTADO_ATENDIDO = "Atendido"
+from app1.models import obddata, RecomendacionMantenimiento, Vehiculo
+
+# constantes alineadas con choices del modelo
+ESTADO_PENDIENTE = "pendiente"
+ESTADO_ATENDIDO = "atendido"
 SEVERIDAD_INFO = "info"
 SEVERIDAD_WARNING = "warning"
 SEVERIDAD_CRITICAL = "critical"
 
 
-# nuevas funciones para reglas de mantenimiento
 def _get_obd_queryset_for_vehicle(vehiculo: Vehiculo):
     """
-    Devolver el queryset OBD para un vehiculo:
-    1) busca por FK vehiculo
-    2) si no hay datos, busca por vehicle_code == vehiculo.placa
+    Prioriza datos ligados por FK; si no hay, usa vehicle_code = placa.
     """
-    qs_fk = obddata.objects.filter(vehiculo=vehiculo)
-    if qs_fk.exists():
-        return qs_fk
-
+    qs = obddata.objects.filter(vehiculo=vehiculo)
+    if qs.exists():
+        return qs
     if vehiculo.placa:
-        qs_code = obddata.objects.filter(vehicle_code=vehiculo.placa)
-        if qs_code.exists():
-            return qs_code
-
-    return obddata.objects.none()  # queryset vacío
+        return obddata.objects.filter(vehicle_code__iexact=vehiculo.placa)
+    return obddata.objects.none()
 
 
-def _crear_recomendacion_unica(
-    vehiculo: Vehiculo, codigo: str, titulo: str, mensaje: str, severidad: str
-):
+def _obtener_registros_recientes(vehiculo, max_registros=500, ventana_horas=24):
     """
-    Crea una recomendación solo si no existe una pendiente con el mismo código para ese vehículo.
+    Limita por ventana temporal y cantidad máxima.
+    """
+    desde = timezone.now() - timedelta(hours=ventana_horas)
+    return (
+        _get_obd_queryset_for_vehicle(vehiculo)
+        .filter(timestamp__gte=desde)
+        .order_by("-timestamp")[:max_registros]
+    )
+
+
+def _crear_recomendacion_unica(vehiculo, codigo, titulo, mensaje, severidad):
+    """
+    Evita duplicados pendientes por código.
     """
     existe = RecomendacionMantenimiento.objects.filter(
-        vehiculo=vehiculo, codigo=codigo, estado="Pendiente"
+        vehiculo=vehiculo, codigo=codigo, estado=ESTADO_PENDIENTE
     ).exists()
-
     if existe:
-        return None  # ya existe una recomendación pendiente similar
+        return None
 
-    rec = RecomendacionMantenimiento.objects.create(
+    return RecomendacionMantenimiento.objects.create(
         vehiculo=vehiculo,
         codigo=codigo,
         titulo=titulo,
         mensaje=mensaje,
         severidad=severidad,
-        estado="Pendiente",
+        estado=ESTADO_PENDIENTE,
     )
-    return rec
 
 
-# funciones anteriores(no devuelven recomendaciones, solo indicadores)
-# 3 Función principal del servicio
+def _evaluar_registros(registros):
+    """
+    Devuelve una lista de dicts con recomendaciones basadas en las métricas.
+    """
+    recomendaciones = []
+
+    max_temp = registros.aggregate(Max("engine_temp_c"))["engine_temp_c__max"]
+    if max_temp is not None and max_temp >= 100:
+        recomendaciones.append(
+            {
+                "codigo": "TEMP_ALTA",
+                "titulo": "Temperatura del motor elevada",
+                "mensaje": (
+                    f"Se detectó temperatura máxima de {max_temp:.1f} °C. "
+                    "Revisar refrigerante, radiador y ventiladores."
+                ),
+                "severidad": SEVERIDAD_CRITICAL,
+            }
+        )
+
+    min_oil = registros.aggregate(Min("oil_pressure_psi"))["oil_pressure_psi__min"]
+    if min_oil is not None and min_oil < 30:
+        recomendaciones.append(
+            {
+                "codigo": "ACEITE_BAJO",
+                "titulo": "Presión de aceite baja",
+                "mensaje": (
+                    f"Presión mínima registrada: {min_oil:.1f} psi. "
+                    "Verificar nivel/calidad de aceite y posibles fugas."
+                ),
+                "severidad": SEVERIDAD_CRITICAL,
+            }
+        )
+
+    min_volt = registros.aggregate(Min("battery_voltage_v"))["battery_voltage_v__min"]
+    if min_volt is not None and min_volt < 12.0:
+        recomendaciones.append(
+            {
+                "codigo": "BATERIA_BAJA",
+                "titulo": "Voltaje de batería bajo",
+                "mensaje": (
+                    f"Voltaje mínimo registrado: {min_volt:.1f} V. "
+                    "Revisar batería y sistema de carga."
+                ),
+                "severidad": SEVERIDAD_WARNING,
+            }
+        )
+
+    if registros.filter(engine_failure_imminent=True).exists():
+        recomendaciones.append(
+            {
+                "codigo": "FALLO_INMINENTE",
+                "titulo": "Alerta de fallo inminente",
+                "mensaje": (
+                    "El módulo OBD reportó un posible fallo inminente. "
+                    "Realizar diagnóstico completo del motor."
+                ),
+                "severidad": SEVERIDAD_CRITICAL,
+            }
+        )
+
+    return recomendaciones
+
+
 def analizar_vehiculo(vehiculo, max_registros=500, ventana_horas=24):
-    """Analiza el estado del vehículo y devuelve recomendaciones de mantenimiento."""
-
-    # Filtrar registros OBD-II recientes
+    """
+    Devuelve recomendaciones (no guarda). Útil para mostrar en dashboard.
+    """
     registros = _obtener_registros_recientes(
-        vehiculo,
-        # max_registros,
-        max_registros=max_registros,
-        # ventana_horas
-        ventana_horas=ventana_horas,
+        vehiculo, max_registros=max_registros, ventana_horas=ventana_horas
     )
+    if not registros.exists():
+        return []
+    return _evaluar_registros(registros)
 
+
+def analizar_vehiculo_y_guardar(vehiculo, max_registros=500, ventana_horas=24):
+    """
+    Genera y guarda recomendaciones nuevas. Devuelve solo las recién creadas.
+    """
+    registros = _obtener_registros_recientes(
+        vehiculo, max_registros=max_registros, ventana_horas=ventana_horas
+    )
     if not registros.exists():
         return []
 
-    # return evaluar_mantenimiento(vehiculo)
-    return evaluar_mantenimiento(vehiculo, registros)
-
-
-# Integrar con el servicio de análisis, nueva funcion EXTENDIDA
-def analizar_vehiculo_y_guardar(vehiculo: Vehiculo):
-
-    # recomendaciones = analizar_vehiculo(vehiculo)
-    # if not recomendaciones:
-    #     return []
-    # return guardar_recomendacion(vehiculo, recomendaciones)
-    """
-    Analiza el histórico OBD de un vehículo y guarda recomendaciones
-    de mantenimiento si se cumplen ciertas condiciones.
-    Devuelve una lista de las recomendaciones NUEVAS creadas.
-    """
-    qs = _get_obd_queryset_for_vehicle(vehiculo)
-    if not qs.exists():
-        return []
-
     nuevas = []
-
-    # 1) temperatura del motor alta
-    max_temp = qs.aggregate(max_temp=Max("engine_temp_c"))["max_temp"]
-    if max_temp is not None and max_temp >= 100:  # revisar umbral >= 100C es ejemplo
-        rec = _crear_recomendacion_unica(
+    for rec in _evaluar_registros(registros):
+        creada = _crear_recomendacion_unica(
             vehiculo=vehiculo,
-            codigo="TEMP_ALTA",
-            titulo="Temperatura del motor elevada",
-            mensaje=(
-                f"Se detectó una temperatura máxima de {max_temp:.1f} °C."
-                "Revisar sistema de refrigeración(refrigerante, radiador, ventiladores)."
-            ),
-            severidad=SEVERIDAD_CRITICAL,
+            codigo=rec["codigo"],
+            titulo=rec["titulo"],
+            mensaje=rec["mensaje"],
+            severidad=rec["severidad"],
         )
-        if rec:
-            nuevas.append(rec)
-
-    # 2) presion de aceite baja
-    min_oil = qs.aggregate(min_oil=Min("oil_pressure_psi"))["min_oil"]
-    if min_oil is not None and min_oil < 30:  # revisar umbrarl < 30 es ejemplo
-        rec = _crear_recomendacion_unica(
-            vehiculo=vehiculo,
-            codigo="ACEITE_BAJO",
-            titulo="Presión de aceite baja",
-            mensaje=(
-                f"La presión mínima de aceite registrada fue {min_oil:.1f} psi."
-                "Verificar nivel y calidad del aceite, asi como posibles fugas."
-            ),
-            severidad=SEVERIDAD_CRITICAL,
-        )
-        if rec:
-            nuevas.append(rec)
-
-    # 3) Batería con voltaje bajo
-    min_volt = qs.aggregate(min_volt=Min("battery_voltage_v"))["min_volt"]
-    if min_volt is not None and min_volt < 12.0:
-        rec = _crear_recomendacion_unica(
-            vehiculo=vehiculo,
-            codigo="BATERIA_BAJA",
-            titulo="Voltaje de batería bajo",
-            mensaje=(
-                f"Se registró un voltaje mínimo de {min_volt:.1f} V."
-                "Revisar estado de la batería y sistema de carga."
-            ),
-            severidad=SEVERIDAD_WARNING,
-        )
-        if rec:
-            nuevas.append(rec)
-    # 4) Flag de fallo inminente reportado por el dispositivo
-    if qs.filter(engine_failure_imminent=True).exists():
-        rec = _crear_recomendacion_unica(
-            vehiculo=vehiculo,
-            codigo="FALLO_INMINENTE",
-            titulo="Alerta de fallo inminente",
-            mensaje=(
-                "El módulo OBD reportó un posible fallo inminente del motor. "
-                "Se recomienda realizar un diagnóstico completo del sistema."
-            ),
-            severidad=SEVERIDAD_CRITICAL,
-        )
-        if rec:
-            nuevas.append(rec)
-
+        if creada:
+            nuevas.append(creada)
     return nuevas
 
 
