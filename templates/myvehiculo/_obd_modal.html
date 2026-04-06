@@ -1,10 +1,24 @@
 <div class="modal fade" id="obdConnectModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header">
+      <!-- <div class="modal-header">
         <h5 class="modal-title">Conectar OBDLink MX+ · {{ vehiculo.placa }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
+      </div> -->
+      <div class="modal-header align-items-start">
+        <div>
+            <h5 class="modal-title">Conectar OBDLink MX+ · {{ vehiculo.placa }}</h5>
+            <div class="small text-muted mt-1">
+            {% if last_obd %}
+                Último dato OBD: {{ last_obd.timestamp|date:"Y-m-d H:i" }}
+            {% else %}
+                Sin registros OBD vinculados aún.
+            {% endif %}
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
 
       <div class="modal-body">
         <div class="row g-3">
@@ -19,7 +33,7 @@
                 </ol>
                 <div class="bg-light p-2 rounded small">
                   `export OBD_PORT="/dev/ttyUSB0"`<br>
-                  `export OBD_VEHICLE_CODE="{{ vehiculo.obd_code|default:vehiculo.placa }}"`<br>
+                  `export OBD_VEHICLE_CODE="{{ vehiculo.placa}}"`<br>
                   `python manage.py collect_obd --vehicle {{ vehiculo.id }}`
                 </div>
               </div>
@@ -38,6 +52,7 @@
                 <div class="bg-light p-2 rounded small">
                   `export OBD_WIFI_HOST="192.168.0.10"`<br>
                   `export OBD_WIFI_PORT="35000"`<br>
+                  `export OBD_VEHICLE_CODE="{{ vehiculo.placa }}"`<br>
                   `python manage.py collect_obd --vehicle {{ vehiculo.id }}`
                 </div>
               </div>
@@ -48,7 +63,7 @@
         <div class="alert alert-secondary mt-3 mb-0 small">
           Último dato OBD:
           {% if last_obd %}
-            {{ last_obd.timestamp|date:"Y-m-d H:i" }}
+            {{ last_obd.timestamp|date:"Y-m-d H:i" }} ({{vehiculo.placa}})
           {% else %}
             sin registros vinculados aún.
           {% endif %}

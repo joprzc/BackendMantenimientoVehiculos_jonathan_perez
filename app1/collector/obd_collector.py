@@ -1,7 +1,7 @@
 import os
 import time
 
-# import random
+import random
 from datetime import datetime, timezone
 
 import requests
@@ -173,10 +173,12 @@ def safe_obd_value(connection, command, unit=None):
             value = value.to(
                 unit
             ).magnitude  # convertir a la unidad deseada y obtener el valor numérico
-        else:
-            # para valores sin unidad o ya numericos
-            if hasattr(value, "magnitude"):
-                value = value.magnitude  # obtener valor numérico si tiene magnitud
+        elif hasattr(value, "magnitude"):
+            value = value.magnitude  # obtener valor numérico si tiene magnitud
+        # else:
+        #     # para valores sin unidad o ya numericos
+        #     if hasattr(value, "magnitude"):
+        #         value = value.magnitude  # obtener valor numérico si tiene magnitud
 
         return float(value)
     except Exception as e:
@@ -212,9 +214,16 @@ def post_payload(payload):
         "Content-Type": "application/json",
         "X-INGEST-KEY": INGEST_KEY,
     }
-    response = requests.post(API_URL, json=payload, headers=headers)
-    print(f"[INFO] POST {response.status_code}: {response.text}")
-    response.raise_for_status()
+    # response = requests.post(API_URL, json=payload, headers=headers, timeout=15)
+    try:
+        # print(f"[INFO] POST {response.status_code}: {response.text}")
+        response = requests.post(API_URL, json=payload, headers=headers, timeout=15)
+        print(f"[INFO] POST {response.status_code}: {response.text}")
+        # response.raise_for_status()
+        response.raise_for_status()
+    except requests.RequestException as e:
+        print(f"[ERROR] Fallo enviando a Django: {e}")
+        raise
 
 
 def connect_obd():
@@ -223,21 +232,34 @@ def connect_obd():
     Si OBD_PORT es None, python-OBD intentará autodetectar el puerto.
     """
     print(f"[INFO] Conectando a OBD. Puerto={OBD_PORT}")
-    connection = obd.OBD(portstr=OBD_PORT, fast=False, baudrate=115200, timeout=10)
+
+    try:
+        ports = obd.scan_serial()
+        print(f"[INFO] Puertos OBD detectados: {ports}")
+    except Exception as e:
+        print(f"[ERROR] No se pudieron escanear puertos: {e}")
+
+    # connection = obd.OBD(portstr=OBD_PORT, fast=False, baudrate=115200, timeout=10)
+    connection = obd.OBD(portstr=OBD_PORT, fast=False, timeout=10)
 
     if not connection.is_connected():
-        raise RuntimeError("No se pudo conectar al OBDLink MX+")
+        raise RuntimeError(
+            "No se pudo conectar al OBDLink MX+."
+            "En macOS esto suele pasar cuando el dispositivo no se expone como puerto serial utilizable."
+        )
 
     print("[OK] Conexion OBD establecida.")
     return connection
 
 
 def main():
-    connection = connect_obd()
 
     if DRY_RUN:
-        print("[DRY] Payload no enviado", payload)
+        # print("[DRY] Payload no enviado", payload)
+        print("[DRY] DRY_RUN=1 activado. No se enviarán datos.")
         return
+
+    connection = connect_obd()
 
     while True:
         try:

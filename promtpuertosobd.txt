@@ -1,0 +1,50 @@
+Necesito que implementes una mejora en mi proyecto Django para mostrar, dentro de un modal, los puertos detectados por `python-obd` y permitir seleccionar uno para intentar una conexión local con el dispositivo OBDLink MX+ usando un script puente como `collector/obd_collector.py`.
+
+Contexto:
+- Proyecto web en Django.
+- El colector local está en `collector/obd_collector.py`.
+- En macOS, al ejecutar:
+  python -c "import obd; print(obd.scan_serial())"
+  obtengo:
+  ['/dev/tty.debug-console', '/dev/tty.DEVIA-EM031']
+- Quiero que la interfaz web muestre esos puertos en el modal _obd_modal.html.
+- El usuario debe poder ver la lista, seleccionar un puerto y usarlo para la conexión del colector.
+- La arquitectura debe mantenerse como:
+  OBDLink MX+ -> script puente local (`collector/obd_collector.py`) -> API Django -> base de datos -> dashboard web.
+- No quiero conexión directa desde el navegador al OBD, sino configuración y apoyo visual desde la web.
+
+Objetivo funcional:
+1. si es necesario, crear un endpoint en Django que obtenga la lista de puertos disponibles usando `python-obd` (`obd.scan_serial()`).
+2. Mostrar esos puertos dentro de un modal(_obd_modal.html) existente o nuevo.
+3. Permitir seleccionar uno desde la interfaz.
+4. Guardar temporalmente el puerto seleccionado para usarlo al lanzar o configurar el collector.
+5. Mantener compatibilidad con el flujo actual del proyecto.
+6. No romper código existente.
+
+Requerimientos técnicos:
+- Indícame exactamente qué archivos tocar y cuáles crear.
+- Reutiliza la estructura actual del proyecto.
+- Sigue buenas prácticas de programación.
+- No reemplaces funciones completas si solo hace falta extenderlas.
+- Si ya existe un modal relacionado, intégralo ahí en vez de crear duplicados.
+- Si necesitas una vista nueva, crea una vista clara y simple.
+- Si necesitas JS, que sea limpio y fácil de mantener.
+- Si necesitas URL nueva, agrégala sin afectar las rutas actuales.
+- Si necesitas almacenar el puerto seleccionado, explica si conviene en sesión, variable de entorno, modelo o tabla de configuración.
+- Dame también el flujo de prueba paso a paso para verificar que todo funcione.
+
+Lo que espero como respuesta:
+1. Explicación breve de la solución.
+2. Lista exacta de archivos a tocar o crear.
+3. Código completo por archivo.
+4. Indicación de en qué parte insertar cada bloque si el archivo ya existe.
+5. Paso a paso de pruebas.
+6. Consideraciones para macOS y OBDLink MX+.
+
+Importante:
+- Trabaja sobre el código que ya funciona.
+- No rompas el sistema actual.
+- Mantén el proyecto funcional.
+- Si detectas que el mejor diseño es exponer un endpoint como `/api/obd/ports/` o similar, hazlo.
+- Si el modal debe cargar los puertos vía fetch/AJAX, impleméntalo.
+- Si ves necesario filtrar puertos irrelevantes como `/dev/tty.debug-console`, proponlo de forma segura.
