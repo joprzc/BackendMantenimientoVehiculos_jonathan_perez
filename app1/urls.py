@@ -1,7 +1,9 @@
 from django.urls import path
 from . import views
 
-from app1.api.views import OBDIngestAPIView
+from app1.api.views import OBDIngestAPIView, OBDPortsAPIView, OBDPortSelectionAPIView
+from app1.views import api_vehicle_gauges
+
 
 urlpatterns = [
     # Rutas para mantenimientos
@@ -42,4 +44,16 @@ urlpatterns = [
         name="analizar_vehiculo_action",
     ),
     path("api/obd/ingest/", OBDIngestAPIView.as_view(), name="api_obd_ingest"),
+    path("api/obd/ports/", OBDPortsAPIView.as_view(), name="api_obd_ports"),
+    path(
+        "api/obd/port/select/",
+        OBDPortSelectionAPIView.as_view(),
+        name="api_obd_port_select",
+    ),
+    path("api/obd/ingest/", OBDIngestAPIView.as_view(), name="api_obd_ingest"),
+    path(
+        "api/vehiculos/<int:vehiculo_id>/gauges/",
+        api_vehicle_gauges,
+        name="api_vehicle_gauges",
+    ),
 ]

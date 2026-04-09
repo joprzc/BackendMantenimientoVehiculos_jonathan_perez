@@ -1,27 +1,45 @@
 <div class="modal fade" id="obdConnectModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
-      <!-- <div class="modal-header">
-        <h5 class="modal-title">Conectar OBDLink MX+ · {{ vehiculo.placa }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div> -->
+
       <div class="modal-header align-items-start">
         <div>
-            <h5 class="modal-title">Conectar OBDLink MX+ · {{ vehiculo.placa }}</h5>
-            <div class="small text-muted mt-1">
+          <h5 class="modal-title">Conectar OBDLink MX+ · {{ vehiculo.placa }}</h5>
+          <div class="small text-muted mt-1">
             {% if last_obd %}
-                Último dato OBD: {{ last_obd.timestamp|date:"Y-m-d H:i" }}
+              Último dato OBD: {{ last_obd.timestamp|date:"Y-m-d H:i" }}
             {% else %}
-                Sin registros OBD vinculados aún.
+              Sin registros OBD vinculados aún.
             {% endif %}
-            </div>
+          </div>
+          <div class="small text-muted" id="saved-port-label">
+            Puerto guardado: {{ selected_obd_port|default:"-" }}
+          </div>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-
+      </div>
 
       <div class="modal-body">
+        <!-- Bloque de puertos -->
+        <div class="border rounded p-3 mb-3">
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm" id="btn-scan-ports">
+              Escanear puertos
+            </button>
+            <span class="small text-muted" id="ports-status">Listo para escanear.</span>
+          </div>
+          <div class="mt-2">
+            <select class="form-select form-select-sm" id="obd-port-select">
+              <option value="">Selecciona un puerto</option>
+            </select>
+          </div>
+          <div class="mt-2 d-flex gap-2">
+            <button class="btn btn-success btn-sm" id="btn-save-port">Guardar puerto</button>
+          </div>
+        </div>
+
         <div class="row g-3">
+          <!-- columnas Bluetooth / WiFi se mantienen igual, pero usa placa -->
           <div class="col-md-6">
             <div class="card h-100 border-success">
               <div class="card-body">
@@ -33,7 +51,7 @@
                 </ol>
                 <div class="bg-light p-2 rounded small">
                   `export OBD_PORT="/dev/ttyUSB0"`<br>
-                  `export OBD_VEHICLE_CODE="{{ vehiculo.placa}}"`<br>
+                  `export OBD_VEHICLE_CODE="{{ vehiculo.placa }}"`<br>
                   `python manage.py collect_obd --vehicle {{ vehiculo.id }}`
                 </div>
               </div>
@@ -60,10 +78,11 @@
           </div>
         </div>
 
+        <!-- alert de respaldo -->
         <div class="alert alert-secondary mt-3 mb-0 small">
           Último dato OBD:
           {% if last_obd %}
-            {{ last_obd.timestamp|date:"Y-m-d H:i" }} ({{vehiculo.placa}})
+            {{ last_obd.timestamp|date:"Y-m-d H:i" }} ({{ vehiculo.placa }})
           {% else %}
             sin registros vinculados aún.
           {% endif %}
@@ -77,3 +96,83 @@
     </div>
   </div>
 </div>
+
+<script>
+(() => {
+  const modal = document.getElementById("obdConnectModal");
+  if (!modal) return;
+
+  const select = modal.querySelector("#obd-port-select");
+  const statusEl = modal.querySelector("#ports-status");
+  const savedEl = modal.querySelector("#saved-port-label");
+  const vehicleId = "{{ vehiculo.id }}";
+  const csrfToken = "{{ csrf_token }}";
+
+  async function fetchPorts() {
+    statusEl.textContent = "Buscando puertos...";
+    select.innerHTML = '<option value="">Cargando...</option>';
+    try {
+      const resp = await fetch("{% url 'api_obd_ports' %}?include_debug=1", {
+        headers: {"X-Requested-With": "XMLHttpRequest"}
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || resp.statusText);
+
+      select.innerHTML = '<option value="">Selecciona un puerto</option>';
+      (data.ports || []).forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        // Mostrar solo el nombre corto del puerto
+        opt.textContent = p.split("/").pop();
+        select.appendChild(opt);
+      });
+      statusEl.textContent = data.count ? `${data.count} puerto(s) detectado(s)` : "Sin puertos detectados";
+
+      // Si hay un puerto guardado en sesión, pré-selecciónalo
+      const saved = "{{ selected_obd_port|default:'' }}";
+      if (saved) {
+        const match = Array.from(select.options).find(o => o.value === saved);
+        if (match) match.selected = true;
+      }
+
+      // Si nada apareció, sugiere probar con include_debug=1 desde consola
+      if (!data.count) {
+        statusEl.textContent += " · Prueba con include_debug=1 o revisa permisos del usuario del servidor";
+      }
+    } catch (err) {
+      statusEl.textContent = "Error: " + err.message;
+    }
+  }
+
+  async function savePort() {
+    const port = select.value;
+    if (!port) {
+      statusEl.textContent = "Elige un puerto primero";
+      return;
+    }
+    statusEl.textContent = "Guardando...";
+    try {
+      const resp = await fetch("{% url 'api_obd_port_select' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({ port, vehicle_id: vehicleId })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || resp.statusText);
+
+      savedEl.textContent = `Puerto guardado: ${port}`;
+      statusEl.textContent = "Listo. Usa este puerto en el collector.";
+    } catch (err) {
+      statusEl.textContent = "Error: " + err.message;
+    }
+  }
+
+  modal.addEventListener("shown.bs.modal", fetchPorts);
+  modal.querySelector("#btn-scan-ports").addEventListener("click", fetchPorts);
+  modal.querySelector("#btn-save-port").addEventListener("click", savePort);
+})();
+</script>

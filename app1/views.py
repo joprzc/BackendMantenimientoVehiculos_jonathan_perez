@@ -33,6 +33,9 @@ from app1.services.maintenance_analyzer import analizar_vehiculo_y_guardar
 # graficas adminLTE
 from app1.services.obd_chart_service import get_obd_chart_data
 
+# graficas echart
+from app1.services.dashboard_gauge_service import get_vehicle_gauge_data
+
 
 # Create your views here.
 # @api_view(["GET"])
@@ -281,7 +284,8 @@ def vehiculo_index(request, id):
 
     # mismo contexto para _dashboard_content.html
     # context.update(build_dashboard_context(vehiculo))
-    context["obd_code"] = vehiculo.obd_code or vehiculo.placa
+    # context["obd_code"] = vehiculo.obd_code or vehiculo.placa
+    context["selected_obd_port"] = request.session.get("obd_port")
 
     return render(request, "myvehiculo/vehiculoindex.html", context)
 
@@ -352,6 +356,14 @@ def vehiculo_delete(request, id):
     return redirect("inicio")
 
 
+# graficas echarts
+# @login_required
+def api_vehicle_gauges(request, vehiculo_id):
+    vehiculo = get_object_or_404(Vehiculo, id=vehiculo_id, usuario=request.user)
+    data = get_vehicle_gauge_data(vehiculo)
+    return JsonResponse(data)
+
+
 # vista de graficos OBD-II
 def obd_charts_view(request):
     vehiculos = Vehiculo.objects.all().order_by("placa")
@@ -398,14 +410,19 @@ def obd_chart_data(request):
 
 # leer filtros
 def _get_filters(request):
-    vehiculo_id = request.GET.get("vehiculo_id")
+    # vehiculo_id = request.GET.get("vehiculo_id")
+    vehiculo_id = (
+        request.GET.get("vehiculo_id")
+        or request.GET.get("vehiculo")
+        or request.GET.get("vehiculoId")
+    )
     fi = parse_date(request.GET.get("fecha_inicio") or "")
     ff = parse_date(request.GET.get("fecha_fin") or "")
 
     # Rango por defecto: última semana hasta hoy si no se envían fechas
     if not fi and not ff:
         ff = date.today()
-        fi = ff - timedelta(days=7)
+        fi = ff - timedelta(days=30)
     else:
         # Evita traer registros futuros si llega una fecha_fin posterior a hoy
         today = date.today()
@@ -434,6 +451,19 @@ def _get_filters(request):
         qs = qs.filter(timestamp__date__gte=fi)  # mayor o igual que
     if ff:
         qs = qs.filter(timestamp__date__lte=ff)  # menor o igual que
+
+    # si el rango filtrado quedo vacío, mostrar ultimos 200 registros
+    if not qs.exists():
+        base = obddata.objects.all()
+        if vehiculo_id:
+            base_fk = base.filter(vehiculo_id=vehiculo_id)
+            if base_fk.exists():
+                base = base_fk
+            else:
+                vehiculo = Vehiculo.objects.filter(pk=vehiculo_id).only("placa").first()
+                if vehiculo and vehiculo.placa:
+                    base = base.filter(vehicle_code=vehiculo.placa)
+        qs = base.order_by("-timestamp")[:200]
 
     return qs
 

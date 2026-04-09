@@ -105,7 +105,8 @@ def _evaluar_registros(registros):
             }
         )
 
-    if registros.filter(engine_failure_imminent=True).exists():
+    # if registros.filter(engine_failure_imminent=True).exists():
+    if any(r.engine_failure_imminent for r in registros):
         recomendaciones.append(
             {
                 "codigo": "FALLO_INMINENTE",

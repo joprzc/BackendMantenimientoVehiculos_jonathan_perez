@@ -10,9 +10,23 @@ def _apply_date_filters(qs, fecha_inicio=None, fecha_fin=None):
     return qs
 
 
+def _get_obd_queryset_for_vehiculo(vehiculo):
+    """
+    Obtiene registros OBD para un vehículo usando primero la FK vehiculo_id
+    y, como respaldo, la placa en vehicle_code.
+    """
+    qs = obddata.objects.filter(vehiculo_id=vehiculo.id)
+
+    if qs.exists():
+        return qs
+
+    return obddata.objects.filter(vehicle_code=vehiculo.placa)
+
+
 def get_obd_chart_data(vehiculo, fecha_inicio=None, fecha_fin=None):
     """Devuelve múltiples series crudas (no agregadas) para gráficos."""
-    qs = obddata.objects.filter(vehiculo_id=vehiculo.id)
+    # qs = obddata.objects.filter(vehiculo_id=vehiculo.id)
+    qs = _get_obd_queryset_for_vehiculo(vehiculo)
     qs = _apply_date_filters(qs, fecha_inicio, fecha_fin).order_by("timestamp")
 
     return {
@@ -34,7 +48,8 @@ def get_obd_series_labels_values(
 
     field_name: nombre del campo en el modelo obddata (ej: 'engine_rpm', 'oil_pressure_psi')
     """
-    qs = obddata.objects.filter(vehiculo_id=vehiculo.id)
+    # qs = obddata.objects.filter(vehiculo_id=vehiculo.id)
+    qs = _get_obd_queryset_for_vehiculo(vehiculo)
     qs = _apply_date_filters(qs, fecha_inicio, fecha_fin).order_by("timestamp")
 
     labels = []
