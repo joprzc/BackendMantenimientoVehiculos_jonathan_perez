@@ -48,3 +48,16 @@ class VehiculoForm(forms.ModelForm):
         labels = {
             "anio": "Año",
         }
+
+
+class WhatsappMaintenanceForm(forms.Form):
+    phone = forms.CharField(label="WhatsApp", max_length=20)
+    message = forms.CharField(label="Mensaje", widget=forms.Textarea, max_length=1000)
+
+    def clean_phone(self):
+        phone = self.cleaned_data["phone"].strip().replace(" ", "")
+        if not phone.startswith("+") or not phone[1:].isdigit():
+            raise forms.ValidationError(
+                "Número de teléfono inválido. Debe comenzar con '+' seguido de dígitos."
+            )
+        return phone

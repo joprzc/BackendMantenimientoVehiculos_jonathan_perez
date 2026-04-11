@@ -36,6 +36,12 @@ from app1.services.obd_chart_service import get_obd_chart_data
 # graficas echart
 from app1.services.dashboard_gauge_service import get_vehicle_gauge_data
 
+# from app1.services.obd_gauge_service import get_gauge_data
+
+# whatsapp
+from app1.forms import WhatsappMaintenanceForm
+from .services.whatsapp_service import send_whatsapp
+
 
 # Create your views here.
 # @api_view(["GET"])
@@ -288,6 +294,29 @@ def vehiculo_index(request, id):
     context["selected_obd_port"] = request.session.get("obd_port")
 
     return render(request, "myvehiculo/vehiculoindex.html", context)
+
+
+# vista whatsapp
+@login_required(login_url="login")
+@require_POST
+def vehiculo_notify_whatsapp(request, vehiculo_id):
+    vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_id, usuario=request.user)
+    # if request.method != "POST":
+    #     return HttpResponseNotAllowed(["POST"])
+
+    form = WhatsappMaintenanceForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "Corrige el número o el mensaje de WhatsApp.")
+        return redirect("vehiculo_index", id=vehiculo_id)
+
+    to_number = form.cleaned_data["phone"]
+    message = form.cleaned_data["message"]
+    ok, detail = send_whatsapp(to_number, message)
+    if ok:
+        messages.success(request, "Notificación enviada")
+    else:
+        messages.error(request, f"No se envió: {detail}")
+    return redirect("vehiculo_index", id=vehiculo_id)
 
 
 # crear vista vehiculo

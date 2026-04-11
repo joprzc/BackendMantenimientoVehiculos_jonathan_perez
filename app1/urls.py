@@ -1,8 +1,10 @@
 from django.urls import path
 from . import views
+from app1 import views
 
 from app1.api.views import OBDIngestAPIView, OBDPortsAPIView, OBDPortSelectionAPIView
 from app1.views import api_vehicle_gauges
+from .forms import WhatsappMaintenanceForm
 
 
 urlpatterns = [
@@ -55,5 +57,10 @@ urlpatterns = [
         "api/vehiculos/<int:vehiculo_id>/gauges/",
         api_vehicle_gauges,
         name="api_vehicle_gauges",
+    ),
+    path(
+        "myvehiculo/vehiculoindex/<int:vehiculo_id>/notify/",
+        views.vehiculo_notify_whatsapp,
+        name="vehiculo_notify_whatsapp",
     ),
 ]

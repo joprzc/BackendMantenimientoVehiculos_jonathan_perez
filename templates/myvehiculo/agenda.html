@@ -28,6 +28,17 @@
                                     <button type="submit" class="btn btn-info btn-sm">Notificar</button>
                                 </form>
 
+                                <form method="post" action="{% url 'vehiculo_notify_whatsapp' m.vehiculo.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <div class="input-group input-group-sm flex-nowrap" style="max-width: 320px;">
+                                        <input type="text" name="phone" class="form-control" placeholder="+593999999999" required>
+                                        <input type="hidden" name="message"
+                                            value="Recordatorio: {{ m.descripcion|escape }} el {{ m.fecha|date:'d/m/Y' }} para el vehículo {{ m.vehiculo.placa }}.">
+                                        <button type="submit" class="btn btn-success">WhatsApp</button>
+                                    </div>
+                                </form>
+
+
                                 <form method="post" action="{% url 'mantenimiento_delete' m.id %}" class="d-inline" onsubmit="return confirm('¿Eliminar este mantenimiento?');">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
