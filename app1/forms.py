@@ -8,7 +8,42 @@ class MantenimientoForm(forms.ModelForm):
     class Meta:  # clase interna recomendado
         model = Mantenimiento
         # fields = ["vehiculo", "fecha", "descripcion", "estado"]
-        fields = "__all__"
+        # fields = "__all__"
+        fields = [
+            "vehiculo",
+            "descripcion",
+            "fecha",
+            "nombre_mecanico",
+            "telefono_mecanico",
+        ]
+
+        widgets = {
+            "fecha": forms.DateInput(attrs={"type": "date"}),
+            "nombre_mecanico": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Nombre del mecánico",
+                }
+            ),
+            "telefono_mecanico": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "593999999999",
+                }
+            ),
+        }
+
+    def clean_telefono_mecanico(self):
+        telefono = self.cleaned_data.get("telefono_mecanico", "")
+        if not telefono:
+            return telefono  # Permitir campo vacío
+
+        telefono = telefono.strip().replace(" ", "").replace("-", "")
+        if not telefono.startswith("+"):
+            raise forms.ValidationError(
+                "El teléfono debe incluir código de país. Ejemplo: +593999999999"
+            )
+        return telefono
 
 
 # formulario para vehiculo

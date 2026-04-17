@@ -63,4 +63,9 @@ urlpatterns = [
         views.vehiculo_notify_whatsapp,
         name="vehiculo_notify_whatsapp",
     ),
+    path(
+        "mantenimiento/<int:mantenimiento_id>/notify-whatsapp/",
+        views.mantenimiento_notify_whatsapp,
+        name="mantenimiento_notify_whatsapp",
+    ),
 ]

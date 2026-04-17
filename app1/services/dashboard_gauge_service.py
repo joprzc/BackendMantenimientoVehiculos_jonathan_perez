@@ -1,4 +1,16 @@
-from app1.models import obddata
+from app1.models import obddata, Vehiculo
+
+
+def _get_queryset_for_vehicle(vehiculo: Vehiculo):
+    """
+    Devuelve un queryset priorizando FK; si no hay, usa vehicle_code (placa).
+    """
+    qs = obddata.objects.filter(vehiculo=vehiculo)
+    if qs.exists():
+        return qs
+    if vehiculo.placa:
+        return obddata.objects.filter(vehicle_code__iexact=vehiculo.placa)
+    return obddata.objects.none()
 
 
 def _status_from_ranges(
@@ -20,9 +32,8 @@ def _status_from_ranges(
 
 
 def get_vehicle_gauge_data(vehiculo):
-    latest = (
-        obddata.objects.filter(vehiculo_id=vehiculo.id).order_by("-timestamp").first()
-    )
+    qs = _get_queryset_for_vehicle(vehiculo)
+    latest = qs.order_by("-timestamp", "-id").first()
 
     if not latest:
         return {

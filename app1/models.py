@@ -79,6 +79,9 @@ class Mantenimiento(models.Model):
             ("Realizado", "Realizado"),
         ],
     )
+    # datos del mecanico
+    nombre_mecanico = models.CharField(max_length=120, blank=True, null=True)
+    telefono_mecanico = models.CharField(max_length=20, blank=True, null=True)
 
     # define como se veran las filas
     def __str__(self):

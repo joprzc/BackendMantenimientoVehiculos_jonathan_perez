@@ -39,6 +39,7 @@ from app1.services.dashboard_gauge_service import get_vehicle_gauge_data
 # from app1.services.obd_gauge_service import get_gauge_data
 
 # whatsapp
+from urllib.parse import quote
 from app1.forms import WhatsappMaintenanceForm
 from .services.whatsapp_service import send_whatsapp
 
@@ -261,6 +262,28 @@ def mantenimiento_send_notification(request, id):
 
     # return redirect("vehiculo_index", id=vehiculo.id)
     return redirect("vehiculo_index", id=mantenimiento.vehiculo.id)
+
+
+# notificaciones a whatsapp
+def mantenimiento_notify_whatsapp(request, mantenimiento_id):
+    mantenimiento = get_object_or_404(Mantenimiento, id=mantenimiento_id)
+
+    telefono = (mantenimiento.telefono_mecanico or "").strip()
+
+    if not telefono:
+        messages.error(request, "Este mantenimiento no tiene teléfono del mecánico.")
+        return redirect(request.META.get("HTTP_REFERER", "mantenimiento_list"))
+    telefono_limpio = telefono.replace(" ", "").replace("+", "")
+
+    mensaje = (
+        f"Hola {mantenimiento.nombre_mecanico or 'mecanico'}, "
+        f"se ha agendado el mantenimiento del vehículo {mantenimiento.vehiculo.placa}. "
+        f"Detalle: {mantenimiento.descripcion}."
+        f"Fecha programada: {mantenimiento.fecha.strftime('%d/%m/%Y')}."
+    )
+
+    whatsapp_url = f"https://wa.me/{telefono_limpio}?text={quote(mensaje)}"
+    return redirect(whatsapp_url)
 
 
 # VAHICULOS
