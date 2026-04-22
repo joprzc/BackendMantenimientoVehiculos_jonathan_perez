@@ -46,11 +46,11 @@ settings_local.py
 **/migrations/__pycache__/
 
 # Archivos estáticos generados
-staticfiles/
-static/
+# staticfiles/
+# static/
 
 # Media subida por usuarios (subir solo si necesario)
-media/
+# media/
 
 # SQLite local
 db.sqlite3

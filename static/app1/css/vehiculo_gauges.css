@@ -1,0 +1,13 @@
+.gauge-card {
+  min-height: 280px;
+}
+
+.gauge-box {
+  width: 120%;
+  height: 380px; /* controla el tamaño del gauge */
+}
+
+.gauge-meta {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
