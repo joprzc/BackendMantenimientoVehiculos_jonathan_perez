@@ -41,18 +41,17 @@
               class="card h-100 shadow-sm text-decoration-none"
               style="cursor: pointer"
             >
+              {% load static %}
+
               {% if v.imagen %}
-              <img
-                src="{{ v.imagen.url }}"
-                class="card-img-top"
-                style="height: 145px; object-fit: scale-down"
-              />
+                <img
+                  src="{{ v.imagen.url }}"
+                  class="card-img-top"
+                  style="height: 145px; object-fit: scale-down"
+                />
               {% else %}
-              <img
-                src="https://via.placeholder.com/200x145?text=Vehículo"
-                class="card-img-top"
-                style="height: 145px; object-fit: scale-down"
-              />
+                <img src="{% static 'app1/img/imgdefault.png' %}" class="card-img-top" style="height: 145px; object-fit: scale-down" 
+                />
               {% endif %}
 
               <div class="card-body p-2">

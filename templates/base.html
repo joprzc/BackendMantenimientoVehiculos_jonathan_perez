@@ -92,13 +92,31 @@
     }
 
     // agregar vehiculo
+    // function cargarFormularioVehiculo() {
+    //   fetch("{% url 'vehiculo_create' %}")
+    //     .then((response) => response.text())
+    //     .then((html) => {
+    //       mostrarVehiculoModal(html);
+    //     });
+    // }
+
     function cargarFormularioVehiculo() {
-      fetch("{% url 'vehiculo_create' %}")
-        .then((response) => response.text())
-        .then((html) => {
-          mostrarVehiculoModal(html);
-        });
-    }
+        fetch("{% url 'vehiculo_create' %}")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+            return response.text();
+          })
+          .then((html) => {
+            mostrarVehiculoModal(html);
+          })
+          .catch((error) => {
+            console.error("No se pudo cargar el formulario:", error);
+            alert("No se pudo cargar el formulario del vehículo.");
+          });
+      }
+
 
     // editar vehiculo
     function cargarFormularioVehiculoEditar(id) {
