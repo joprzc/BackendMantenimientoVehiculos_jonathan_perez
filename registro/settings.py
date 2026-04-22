@@ -58,9 +58,37 @@ TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER", "")
 #     ".onrender.com",  # para despliegue en render.com
 # ]
 
-ALLOWED_HOSTS = os.getenv(
-    "ALLOWED_HOSTS", "localhost,127.0.0.1,1.0.0.127.in-addr.arpa,.onrender.com"
-).split(",")
+
+def env_list(name, default=""):
+    return [
+        item.strip() for item in os.getenv(name, default).split(",") if item.strip()
+    ]
+
+
+DEBUG = os.getenv("DEBUG", "True") == "True"
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME", "").strip()
+
+ALLOWED_HOSTS = env_list(
+    "ALLOWED_HOSTS",
+    "localhost,127.0.0.1,1.0.0.127.in-addr.arpa,.onrender.com",
+)
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+CSRF_TRUSTED_ORIGINS = env_list(
+    "CSRF_TRUSTED_ORIGINS",
+    "https://*.onrender.com,http://1.0.0.127.in-addr.arpa:8000",
+)
+if RENDER_EXTERNAL_HOSTNAME:
+    render_origin = f"https://{RENDER_EXTERNAL_HOSTNAME}"
+    if render_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(render_origin)
+
+# ALLOWED_HOSTS = os.getenv(
+#     "ALLOWED_HOSTS", "localhost,127.0.0.1,1.0.0.127.in-addr.arpa,.onrender.com"
+# ).split(",")
 
 # CSRF para Render
 # CSRF_TRUSTED_ORIGINS = [
@@ -160,10 +188,8 @@ WSGI_APPLICATION = "registro.wsgi.application"
 #     }
 # }
 
-DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
-DEBUG = os.getenv("DEBUG", "True") == "True"
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 
+# bloque de base de datos
 if DATABASE_URL:
     db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     if db_config["ENGINE"] == "django.db.backends.postgresql":
@@ -236,18 +262,23 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 # configuracion de archivos multimedia
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-
-# seguridad basica por entorno
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
+# --------------------------------------------------------
+# Boble de seguridad
+# --------------------------------------------------------
 # variables para render
 # DEBUG = os.getenv("DEBUG", "True") == "True"
 # SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
-
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # temporal
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_SSL_REDIRECT = not DEBUG
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "SAMEORIGIN"
+if not DEBUG:
+    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "31536000"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 # enviar email
 # EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
