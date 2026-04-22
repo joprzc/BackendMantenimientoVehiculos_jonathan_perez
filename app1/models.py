@@ -1,3 +1,4 @@
+import re
 from encodings.punycode import T
 from operator import index
 from django import db
@@ -6,6 +7,19 @@ from django.contrib.auth.models import User
 from django.conf import settings
 
 import app1
+
+
+PLACA_REGEX = re.compile(r"^[A-Z]{3}-\d{4}$")
+
+
+def normalizar_placa(valor):
+    if not valor:
+        return valor
+
+    limpio = re.sub(r"[^A-Za-z0-9]", "", valor).upper()
+    if len(limpio) <= 3:
+        return limpio
+    return f"{limpio[:3]}-{limpio[3:7]}"
 
 
 # modelo estructura de tabla para vehiculos
@@ -51,6 +65,10 @@ class Vehiculo(models.Model):
     def tipo_combustible(self):
         # alias limpio para usar en servicios
         return self.tipo_comsbustible
+
+    def save(self, *args, **kwargs):
+        self.placa = normalizar_placa(self.placa)
+        return super().save(*args, **kwargs)
 
     # define como se veran las filas
     def __str__(self):

@@ -1,6 +1,7 @@
+import re
 from django import forms
 from datetime import date
-from .models import Mantenimiento, Vehiculo
+from .models import Mantenimiento, Vehiculo, normalizar_placa
 
 
 # usar ModelForms
@@ -46,6 +47,54 @@ class MantenimientoForm(forms.ModelForm):
         return telefono
 
 
+# marcas de vehiculos en ecuador
+MARCAS_ECUADOR = [
+    ("", "Seleccione una marca"),
+    ("Chevrolet", "Chevrolet"),
+    ("Kia", "Kia"),
+    ("Hyundai", "Hyundai"),
+    ("Toyota", "Toyota"),
+    ("Nissan", "Nissan"),
+    ("Suzuki", "Suzuki"),
+    ("Mazda", "Mazda"),
+    ("Ford", "Ford"),
+    ("Volkswagen", "Volkswagen"),
+    ("Renault", "Renault"),
+    ("Chery", "Chery"),
+    ("Great Wall", "Great Wall"),
+    ("JAC", "JAC"),
+    ("DFSK", "DFSK"),
+    ("BMW", "BMW"),
+    ("Mercedes-Benz", "Mercedes-Benz"),
+    ("Audi", "Audi"),
+    ("Mitsubishi", "Mitsubishi"),
+    ("Honda", "Honda"),
+]
+
+# estructura de modelos por marca
+MODELOS_POR_MARCA = {
+    "Chevrolet": ["Aveo", "Sail", "Onix", "D-Max", "Spark"],
+    "Kia": ["Rio", "Sportage", "Picanto", "Cerato"],
+    "Hyundai": ["Accent", "Tucson", "Elantra", "Santa Fe"],
+    "Toyota": ["Corolla", "Hilux", "Fortuner", "Yaris"],
+    "Nissan": ["Versa", "Sentra", "Frontier", "X-Trail"],
+    "Suzuki": ["Swift", "Vitara", "Alto"],
+    "Mazda": ["Mazda 2", "Mazda 3", "CX-5"],
+    "Ford": ["Fiesta", "Explorer", "Ranger"],
+    "Volkswagen": ["Gol", "Jetta", "Amarok"],
+    "Renault": ["Logan", "Sandero", "Duster"],
+    "Chery": ["Tiggo 2", "Tiggo 4"],
+    "Great Wall": ["Wingle", "Haval H2"],
+    "JAC": ["S2", "S3", "T6"],
+    "DFSK": ["Glory 560", "K01"],
+    "BMW": ["X1", "X3", "Serie 3"],
+    "Mercedes-Benz": ["Clase C", "GLA"],
+    "Audi": ["A3", "Q5"],
+    "Mitsubishi": ["L200", "Outlander"],
+    "Honda": ["Civic", "CR-V"],
+}
+
+
 # formulario para vehiculo
 class VehiculoForm(forms.ModelForm):
     anio = forms.TypedChoiceField(
@@ -70,6 +119,50 @@ class VehiculoForm(forms.ModelForm):
                 "style": "max-width: 150px;",
             }
         )
+        self.fields["placa"].widget.attrs.update(
+            {
+                "class": "form-control",
+                "placeholder": "PCB-5514",
+                "maxlength": 8,
+                "autocapitalize": "characters",
+                "autocomplete": "off",
+            }
+        )
+
+        marca_actual = None
+        if self.is_bound:
+            marca_actual = self.data.get("marca")
+        elif self.instance and self.instance.pk:
+            marca_actual = self.instance.marca
+
+        modelos = MODELOS_POR_MARCA.get(marca_actual, [])
+        self.fields["modelo"].choices = [
+            ("", "Seleccione un modelo"),
+            *[(modelo, modelo) for modelo in modelos],
+        ]
+
+    def clean_placa(self):
+        placa = normalizar_placa(self.cleaned_data.get("placa", ""))
+        if not re.fullmatch(r"[A-Z]{3}-\d{4}", placa or ""):
+            raise forms.ValidationError(
+                "La placa debe tener el formato ABC-1234."
+            )
+        return placa
+
+    # elegir marca de una lista predefinida
+    marca = forms.ChoiceField(
+        choices=MARCAS_ECUADOR,
+        required=True,
+        label="Marca",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    modelo = forms.ChoiceField(
+        choices=[("", "Seleccione un modelo")],
+        required=True,
+        label="Modelo",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
 
     class Meta:
         model = Vehiculo
@@ -83,6 +176,7 @@ class VehiculoForm(forms.ModelForm):
         labels = {
             "anio": "Año",
         }
+        widgets = {}
 
 
 class WhatsappMaintenanceForm(forms.Form):

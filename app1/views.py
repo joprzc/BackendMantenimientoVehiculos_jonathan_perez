@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from .models import Mantenimiento, Vehiculo, obddata
-from .forms import MantenimientoForm, VehiculoForm
+from .forms import MantenimientoForm, VehiculoForm, MODELOS_POR_MARCA
 from django.views.decorators.http import require_POST  # bloquea metodos no permitidos
 from django.contrib import messages  # para mensajes flash
 from django.utils.dateparse import parse_date
@@ -312,9 +312,10 @@ def vehiculo_index(request, id):
     }
 
     # mismo contexto para _dashboard_content.html
-    # context.update(build_dashboard_context(vehiculo))
+    context.update(build_dashboard_context(vehiculo))
+    context["obd_code"] = getattr(vehiculo, "obd_code", None) or vehiculo.placa
     # context["obd_code"] = vehiculo.obd_code or vehiculo.placa
-    context["selected_obd_port"] = request.session.get("obd_port")
+    # context["selected_obd_port"] = request.session.get("obd_port")
 
     return render(request, "myvehiculo/vehiculoindex.html", context)
 
@@ -356,12 +357,28 @@ def vehiculo_create(request):
     else:
         form = VehiculoForm()
 
+    # nuevo vehiculo
+    # context = {
+    #     "form": form,
+    #     "modo": "crear",
+    #     "MODELOS_POR_MARCA": MODELOS_POR_MARCA,
+    # }
+
+    # editar vehiculo
+    # context = {
+    #     "form": form,
+    #     "vehiculo": vehiculo,
+    #     "modo": "editar",
+    #     "MODELOS_POR_MARCA": MODELOS_POR_MARCA,
+    # }
+
     return render(
         request,
         "vehiculo_form_modal.html",
         {
             "form": form,
             "modo": "crear",
+            "MODELOS_POR_MARCA": MODELOS_POR_MARCA,
         },
     )
 
@@ -395,6 +412,7 @@ def vehiculo_edit(request, id):
             "form": form,
             "vehiculo": vehiculo,
             "modo": "editar",
+            "MODELOS_POR_MARCA": MODELOS_POR_MARCA,
         },
     )
 
@@ -702,11 +720,11 @@ def build_dashboard_context(vehiculo):
     # )
     rec_pendientes = RecomendacionMantenimiento.objects.filter(
         vehiculo=vehiculo,
-        estado="Pendiente",
+        estado="pendiente",
     ).order_by("-fecha_creacion")
     rec_atendidas = RecomendacionMantenimiento.objects.filter(
         vehiculo=vehiculo,
-        estado="Atendida",
+        estado="atendido",
     ).order_by("-fecha_creacion")[:10]
 
     return {

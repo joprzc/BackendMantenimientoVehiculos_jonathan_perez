@@ -65,7 +65,70 @@
       </button>      
     {% endif %}   
     
-  </div>   
+  </div> 
+  
+  {{ MODELOS_POR_MARCA|json_script:"modelos-por-marca-data" }}
+  <script>
+    (function initVehiculoFormModal() {
+      const dataNode = document.getElementById("modelos-por-marca-data");
+      const marcaSelect = document.getElementById("id_marca");
+      const modeloSelect = document.getElementById("id_modelo");
+      const placaInput = document.getElementById("id_placa");
+      const modeloActual = "{{ form.data.modelo|default:form.instance.modelo|default:''|escapejs }}";
+
+      if (!dataNode || !marcaSelect || !modeloSelect) {
+        return;
+      }
+
+      const modelosPorMarca = JSON.parse(dataNode.textContent);
+
+      function cargarModelos(marcaSeleccionada) {
+        modeloSelect.innerHTML = '<option value="">Seleccione un modelo</option>';
+
+        if (!modelosPorMarca[marcaSeleccionada]) {
+          return;
+        }
+
+        modelosPorMarca[marcaSeleccionada].forEach(function (modelo) {
+          const option = document.createElement("option");
+          option.value = modelo;
+          option.text = modelo;
+
+          if (modelo === modeloActual) {
+            option.selected = true;
+          }
+
+          modeloSelect.appendChild(option);
+        });
+      }
+
+      marcaSelect.addEventListener("change", function () {
+        cargarModelos(this.value);
+      });
+
+      cargarModelos(marcaSelect.value);
+
+      function formatearPlaca(valor) {
+        const limpio = (valor || "")
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, "")
+          .slice(0, 7);
+
+        if (limpio.length <= 3) {
+          return limpio;
+        }
+
+        return `${limpio.slice(0, 3)}-${limpio.slice(3)}`;
+      }
+
+      if (placaInput) {
+        placaInput.addEventListener("input", function () {
+          this.value = formatearPlaca(this.value);
+        });
+
+        placaInput.value = formatearPlaca(placaInput.value);
+      }
+    })();
+  </script>
   </form>
 </div>
-

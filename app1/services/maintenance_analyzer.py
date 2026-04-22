@@ -57,6 +57,145 @@ def _crear_recomendacion_unica(vehiculo, codigo, titulo, mensaje, severidad):
     )
 
 
+# evaluar rpm
+def _evaluar_alertas_rpm(registros):
+    """
+    evalua patrones de RPM sobre los registros recientes y devuelve recomendaciones en formato dict.
+    """
+    recomendaciones = []
+
+    # convertimos queryset a lista para poder recorrerlo varias veces
+    # data = list(registros.order_by("-timestamp"))
+    data = list(registros)
+
+    if not data:
+        return recomendaciones
+
+    rpms_validas = [r.engine_rpm for r in data if r.engine_rpm is not None]
+    if not rpms_validas:
+        return recomendaciones
+
+    max_rpm = max(rpms_validas)
+    min_rpm = min(rpms_validas)
+
+    # ---------------------------------------------
+    # 1. ralenti inestable
+    # ---------------------------------------------
+    registros_ralenti = [
+        r
+        for r in data
+        if r.engine_rpm is not None
+        and r.vehicle_speed_kph is not None
+        and r.vehicle_speed_kph <= 3
+        and 500 <= r.engine_rpm <= 1200
+    ]
+    if len(registros_ralenti) >= 5:
+        rpms_ralenti = [r.engine_rpm for r in registros_ralenti]
+        variacion_ralenti = max(rpms_ralenti) - min(rpms_ralenti)
+
+        if variacion_ralenti > 300:
+            recomendaciones.append(
+                {
+                    "codigo": "RPM_RALENTI_INESTABLE",
+                    "titulo": "Ralenti inestable detectado",
+                    "mensaje": (
+                        f"Se detectó una variación de {variacion_ralenti:.1f} RPM "
+                        "con el vehículo detenido. Revisar admisión, cuerpo de aceleración y sistema de encendido."
+                    ),
+                    "severidad": SEVERIDAD_WARNING,
+                }
+            )
+
+    # ---------------------------------------------
+    # 2. RPM altas sostenidas
+    # ---------------------------------------------
+    ultimos_altos = [r.engine_rpm for r in data[:10] if r.engine_rpm is not None]
+    if len(ultimos_altos) >= 5:
+        promedio_ultimos_altos = sum(ultimos_altos) / len(ultimos_altos)
+        if promedio_ultimos_altos > 3000:
+            recomendaciones.append(
+                {
+                    "codigo": "RPM_ALTAS_SOSTENIDAS",
+                    "titulo": "RPM altas sostenidas",
+                    "mensaje": (
+                        f"Se registró un promedio reciente de {promedio_ultimos_altos:.1f} RPM. "
+                        "El uso prolongado a altas revoluciones puede acelerar el desgaste del motor. "
+                    ),
+                    "severidad": SEVERIDAD_WARNING,
+                }
+            )
+
+    # ---------------------------------------------
+    # 3. zona critica de RPM
+    # ---------------------------------------------
+    if max_rpm > 4500:
+        recomendaciones.append(
+            {
+                "codigo": "RPM_ZONA_CRITICA",
+                "titulo": "RPM en zona crítica",
+                "mensaje": (
+                    f"Se detectó un valor máximo de {max_rpm:.1f} RPM. "
+                    "Reducir exigencia del motor y verificar condiciones de operación."
+                ),
+                "severidad": SEVERIDAD_CRITICAL,
+            }
+        )
+
+    # ---------------------------------------------
+    # 4. picos brucos de RPM
+    # ---------------------------------------------
+    picos_bruscos = 0
+    for i in range(len(data) - 1):
+        actual = data[i].engine_rpm
+        siguiente = data[i + 1].engine_rpm
+
+        if actual is None or siguiente is None:
+            continue
+
+        if abs(actual - siguiente) > 1500:
+            picos_bruscos += 1
+
+    if picos_bruscos >= 2:
+        recomendaciones.append(
+            {
+                "codigo": "RPM_PICOS_BRUSCOS",
+                "titulo": "Picos bruscos de RPM",
+                "mensaje": (
+                    f"Se detectaron {picos_bruscos} cambios bruscos de revoluciones. "
+                    "Revisar aceleración, transmisión o comportamiento anormal del motor."
+                ),
+                "severidad": SEVERIDAD_WARNING,
+            }
+        )
+
+    # -------------------------------------------------
+    # 5. RPM BAJAS CON EL VEHÍCULO EN MOVIMIENTO
+    # -------------------------------------------------
+    registros_baja_carga = [
+        r
+        for r in data
+        if r.engine_rpm is not None
+        and r.vehicle_speed_kph is not None
+        and r.vehicle_speed_kph > 20
+        and r.engine_rpm < 1200
+    ]
+
+    if len(registros_baja_carga) >= 3:
+        recomendaciones.append(
+            {
+                "codigo": "RPM_BAJAS_EN_MOVIMIENTO",
+                "titulo": "RPM bajas con el vehículo en movimiento",
+                "mensaje": (
+                    "Se detectaron revoluciones bajas mientras el vehículo estaba en movimiento. "
+                    "Esto puede indicar esfuerzo excesivo del motor o uso inadecuado de la marcha."
+                ),
+                "severidad": SEVERIDAD_INFO,
+            }
+        )
+
+    return recomendaciones
+
+
 def _evaluar_registros(registros):
     """
     Devuelve una lista de dicts con recomendaciones basadas en las métricas.
@@ -118,6 +257,9 @@ def _evaluar_registros(registros):
                 "severidad": SEVERIDAD_CRITICAL,
             }
         )
+
+    # alertas por RPM
+    recomendaciones.extend(_evaluar_alertas_rpm(registros))
 
     return recomendaciones
 

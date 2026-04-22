@@ -61,12 +61,26 @@
 
   <!-- cargar el formulario para agregar vehiculo -->
   <script>
+    function ejecutarScriptsEnElemento(element) {
+      element.querySelectorAll("script").forEach((scriptAnterior) => {
+        const nuevoScript = document.createElement("script");
+
+        Array.from(scriptAnterior.attributes).forEach((attr) => {
+          nuevoScript.setAttribute(attr.name, attr.value);
+        });
+
+        nuevoScript.textContent = scriptAnterior.textContent;
+        scriptAnterior.replaceWith(nuevoScript);
+      });
+    }
+
     function mostrarVehiculoModal(html) {
       const content = document.getElementById("vehiculoModalContent");
       const modalEl = document.getElementById("vehiculoModal");
       if (!content || !modalEl) return;
 
       content.innerHTML = html;
+      ejecutarScriptsEnElemento(content);
 
       // Reutiliza la misma instancia y limpia cualquier backdrop huérfano
       document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
