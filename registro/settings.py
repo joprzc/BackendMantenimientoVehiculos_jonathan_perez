@@ -16,6 +16,8 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -158,27 +160,29 @@ WSGI_APPLICATION = "registro.wsgi.application"
 #     }
 # }
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+DEBUG = os.getenv("DEBUG", "True") == "True"
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
+
 if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True,
-        )
-    }
-else:
+    db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    if db_config["ENGINE"] == "django.db.backends.postgresql":
+        db_config.setdefault("OPTIONS", {})
+        db_config["OPTIONS"]["sslmode"] = "require"
+    DATABASES = {"default": db_config}
+elif DEBUG:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": "odbiiprueba",
-            # "NAME": "obd_data",
             "USER": "postgres",
             "PASSWORD": "jprzc",
             "HOST": "localhost",
             "PORT": "5432",
         }
     }
+else:
+    raise ImproperlyConfigured("DATABASE_URL no está configurado en producción.")
 
 
 # Password validation
@@ -237,8 +241,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # variables para render
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
-DEBUG = os.getenv("DEBUG", "True") == "True"
+# DEBUG = os.getenv("DEBUG", "True") == "True"
+# SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 
 # temporal
 SESSION_COOKIE_SECURE = not DEBUG

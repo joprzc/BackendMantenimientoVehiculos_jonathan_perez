@@ -94,40 +94,72 @@ class OBDPortsAPIView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        if not settings.DEBUG:
+            return Response(
+                {
+                    "ports": [],
+                    "count": 0,
+                    "fallback_used": False,
+                    "error": None,
+                    "detail": "El escaneo de puertos OBD solo está disponible en entorno local.",
+                },
+                status=status.HTTP_200_OK,
+            )
+
         err = None
         try:
             import obd
 
             ports = obd.scan_serial() or []
         except Exception as e:
-
             err = str(e)
             ports = []
 
-        # Fallback macOS: si scan_serial está vacío, listamos /dev/tty.* y /dev/cu.*
-        if not ports:
-            try:
-                import glob
+        return Response(
+            {
+                "ports": ports,
+                "count": len(ports),
+                "fallback_used": False,
+                "error": err,
+            },
+            status=status.HTTP_200_OK,
+        )
 
-                ports = sorted(set(glob.glob("/dev/tty.*") + glob.glob("/dev/cu.*")))
-            except Exception:
-                pass
+    # def get(self, request):
+    #     err = None
+    #     try:
+    #         import obd
 
-        include_debug = request.GET.get("include_debug") == "1"
-        if not include_debug:
-            ports = [p for p in ports if "debug" not in p.lower()]
+    #         ports = obd.scan_serial() or []
+    #     except Exception as e:
 
-        payload = {
-            "ports": ports,
-            "count": len(ports),
-            "fallback_used": err is None and not ports,
-            "error": err,
-        }
+    #         err = str(e)
+    #         ports = []
 
-        if err and not ports:
-            return Response(payload, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    #     # Fallback macOS: si scan_serial está vacío, listamos /dev/tty.* y /dev/cu.*
+    #     if not ports:
+    #         try:
+    #             import glob
 
-        return Response(payload)
+    #             ports = sorted(set(glob.glob("/dev/tty.*") + glob.glob("/dev/cu.*")))
+    #         except Exception:
+    #             pass
+
+    #     include_debug = request.GET.get("include_debug") == "1"
+    #     if not include_debug:
+    #         ports = [p for p in ports if "debug" not in p.lower()]
+
+    #     payload = {
+    #         "ports": ports,
+    #         "count": len(ports),
+    #         "fallback_used": err is None and not ports,
+    #         "error": err,
+    #     }
+
+    #     if err and not ports:
+    #         return Response(payload, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    #     return Response(payload)
 
 
 class OBDPortSelectionAPIView(APIView):
