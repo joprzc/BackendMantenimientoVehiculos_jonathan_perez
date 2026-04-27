@@ -1,9 +1,8 @@
 
 {
-  "api_url": "http://127.0.0.1:8000/api/obd/ingest/",
-  "api_url": "https://TU-APP.onrender.com/api/obd/ingest/",
-  "api_key": "OBD_INGEST_API_KEY",
-  "vehicle_code": "ABC5543",
+  "api_url": "https://backendmantenimientovehiculos-jonathan.onrender.com/api/obd/ingest/",
+  "api_key": "proyecto_mantenimiento_key",
+  "vehicle_code": "ABC-5543",
   "interval_seconds": 2,
   "demo_mode": true
 }
