@@ -288,11 +288,12 @@ def mantenimiento_notify_whatsapp(request, mantenimiento_id):
 
 # VAHICULOS
 # pagina principal de vehiculo
+@login_required(login_url="login")
 def vehiculo_index(request, id):
     # vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_id)
     vehiculo = get_object_or_404(Vehiculo, id=id)
     vehiculo = get_object_or_404(
-        Vehiculo.objects.prefetch_related("mantenimientos"), pk=id
+        Vehiculo.objects.prefetch_related("mantenimientos"), pk=id, usuario=request.user
     )
 
     # calcular metricas OBD-II
@@ -357,21 +358,6 @@ def vehiculo_create(request):
     else:
         form = VehiculoForm()
 
-    # nuevo vehiculo
-    # context = {
-    #     "form": form,
-    #     "modo": "crear",
-    #     "MODELOS_POR_MARCA": MODELOS_POR_MARCA,
-    # }
-
-    # editar vehiculo
-    # context = {
-    #     "form": form,
-    #     "vehiculo": vehiculo,
-    #     "modo": "editar",
-    #     "MODELOS_POR_MARCA": MODELOS_POR_MARCA,
-    # }
-
     return render(
         request,
         "vehiculo_form_modal.html",
@@ -428,6 +414,7 @@ def vehiculo_delete(request, id):
 
 # graficas echarts
 # @login_required
+@login_required(login_url="login")
 def api_vehicle_gauges(request, vehiculo_id):
     vehiculo = get_object_or_404(Vehiculo, id=vehiculo_id, usuario=request.user)
     data = get_vehicle_gauge_data(vehiculo)
