@@ -453,20 +453,6 @@ def obd_charts_view(request):
         },
     )
 
-    # today = date.today()
-    # default_end = today
-    # default_start = today - timedelta(days=7)
-
-    # return render(
-    #     request,
-    #     "myvehiculo/obd_charts.html",
-    #     {
-    #         "vehiculos": vehiculos,
-    #         "default_start_str": default_start.isoformat(),
-    #         "default_end_str": default_end.isoformat(),
-    #     },
-    # )
-
 
 # graficos adminLTE
 def obd_chart_data(request):
@@ -637,50 +623,6 @@ def vehiculo_dashboard(request, vehiculo_id):
     context = {"vehiculo": vehiculo}
     context.update(build_dashboard_context(vehiculo))
 
-    # # obd vinculados por FK
-    # qs_fk = obddata.objects.filter(vehiculo=vehiculo)
-
-    # # obd por vehicle_code
-    # qs_code = obddata.objects.filter(vehicle_code=vehiculo.placa)
-
-    # # Usa el mejor queryset disponible
-    # qs = qs_fk if qs_fk.exists() else qs_code
-
-    # obd_count = qs.count()
-    # last_obd = qs.order_by("-timestamp").first()
-
-    # # Metricas(no guardan nada, solo calculan)
-    # horas_motor = calcular_horas_motor(vehiculo)
-    # # horas_motor = 0
-    # km_estimados = calcular_kilometros_estimados(vehiculo)
-    # # km_estimados = 0
-    # rpm_alta_min = tiempo_rpm_alta(vehiculo, umbral=3000)
-    # # rpm_alta_min = 0
-    # temp_critica_min = tiempo_temperatura_critica(vehiculo, umbral=100)
-    # # temp_critica_min = 0
-
-    # # recomendaciones persistentes
-    # # rec_pendientes = []
-    # # rec_atendidas = []
-    # rec_pendientes = vehiculo.recomendaciones.filter(estado="Pendiente").order_by(
-    #     "-fecha_creacion"
-    # )
-    # rec_atendidas = vehiculo.recomendaciones.exclude(estado="Atendido").order_by(
-    #     "-fecha_creacion"
-    # )[:10]
-
-    # context = {
-    #     "vehiculo": vehiculo,
-    #     "obd_count": obd_count,
-    #     "last_obd": last_obd,
-    #     "horas_motor": horas_motor,
-    #     "km_estimados": km_estimados,
-    #     "rpm_alta_min": rpm_alta_min,
-    #     "temp_critica_min": temp_critica_min,
-    #     "rec_pendientes": rec_pendientes,
-    #     "rec_atendidas": rec_atendidas,
-    # }
-
     return render(request, "myvehiculo/_dashboard_content.html", context)
 
 
@@ -708,7 +650,7 @@ def build_dashboard_context(vehiculo):
     horas_motor = calcular_horas_motor(vehiculo)
     km_estimados = calcular_kilometros_estimados(vehiculo)
     rpm_alta_min = tiempo_rpm_alta(vehiculo, umbral=3000)
-    temp_critica_min = tiempo_temperatura_critica(vehiculo, umbral=110)
+    temp_critica_min = tiempo_temperatura_critica(vehiculo, umbral=115)
 
     # Recomendaciones persistentes asociadas al vehículo
     # Mientras tanto, consideramos "pendiente" todo lo que NO está Atendida

@@ -57,7 +57,9 @@ def _crear_recomendacion_unica(vehiculo, codigo, titulo, mensaje, severidad):
     )
 
 
+# ---------------------------------------------------------
 # evaluar rpm
+# ---------------------------------------------------------
 def _evaluar_alertas_rpm(registros):
     """
     evalua patrones de RPM sobre los registros recientes y devuelve recomendaciones en formato dict.
@@ -196,25 +198,100 @@ def _evaluar_alertas_rpm(registros):
     return recomendaciones
 
 
+# ----------------------------------------------------------
+# evaluar temperatura del motor (engine_temp_c)
+# ----------------------------------------------------------
+def _evaluar_alertas_temperatura(registros):
+    """
+    Evalúa engine_temp_c y devuelve recomendaciones de mantenimiento."""
+    recomendaciones = []
+    data = list(registros)
+
+    if not data:
+        return recomendaciones
+
+    # filtrar y extraer datos (comprension de listas)
+    temps_validas = [r.engine_temp_c for r in data if r.engine_temp_c is not None]
+
+    if not temps_validas:
+        return recomendaciones
+
+    max_temp = max(temps_validas)
+
+    # 1. Temperatura critica inmediata
+    if max_temp >= 115:
+        recomendaciones.append(
+            {
+                "codigo": "TEMP_CRITICA",
+                "titulo": "Temperatura crítica del motor",
+                "mensaje": (
+                    f"Se detectó una temperatura máxima de {max_temp:.1f} °C. "
+                    "Se recomienda detener el vehículo y revisar urgentemente el sistema de refrigeración."
+                ),
+                "severidad": SEVERIDAD_CRITICAL,
+            }
+        )
+
+    # 2. Temperatura alta sostenida
+    ultimas_temps = [r.engine_temp_c for r in data[:10] if r.engine_temp_c is not None]
+
+    if len(ultimas_temps) >= 5:
+        promedio_temp = sum(ultimas_temps) / len(ultimas_temps)
+
+        if promedio_temp >= 105 and max_temp < 115:
+            recomendaciones.append(
+                {
+                    "codigo": "TEMP_ALTA_SOSTENIDA",
+                    "titulo": "Temperatura elevada del motor",
+                    "mensaje": (
+                        f"Se registró un promedio reciente de {promedio_temp:.1f} °C. "
+                        "Revisar nivel de refrigerante, radiador, termostato y ventilador."
+                    ),
+                    "severidad": SEVERIDAD_WARNING,
+                }
+            )
+
+    # 3. Registros frecuentes con temperatura alta
+    registros_altos = [
+        r for r in data if r.engine_temp_c is not None and 105 <= r.engine_temp_c < 115
+    ]
+
+    if len(registros_altos) >= 3 and max_temp < 115:
+        recomendaciones.append(
+            {
+                "codigo": "TEMP_ALTA_FRECUENTE",
+                "titulo": "Temperatura alta frecuente",
+                "mensaje": (
+                    f"Se detectaron {len(registros_altos)} registros con temperatura elevada. "
+                    "Se recomienda revisar el sistema de enfriamiento para prevenir sobrecalentamiento."
+                ),
+                "severidad": SEVERIDAD_WARNING,
+            }
+        )
+    return recomendaciones
+
+
 def _evaluar_registros(registros):
     """
     Devuelve una lista de dicts con recomendaciones basadas en las métricas.
     """
     recomendaciones = []
 
-    max_temp = registros.aggregate(Max("engine_temp_c"))["engine_temp_c__max"]
-    if max_temp is not None and max_temp >= 100:
-        recomendaciones.append(
-            {
-                "codigo": "TEMP_ALTA",
-                "titulo": "Temperatura del motor elevada",
-                "mensaje": (
-                    f"Se detectó temperatura máxima de {max_temp:.1f} °C. "
-                    "Revisar refrigerante, radiador y ventiladores."
-                ),
-                "severidad": SEVERIDAD_CRITICAL,
-            }
-        )
+    # La evaluación de engine_temp_c se realiza en _evaluar_alertas_temperatura()
+    # max_temp = registros.aggregate(Max("engine_temp_c"))["engine_temp_c__max"]
+
+    # if max_temp is not None and max_temp >= 100:
+    #     recomendaciones.append(
+    #         {
+    #             "codigo": "TEMP_ALTA",
+    #             "titulo": "Temperatura del motor elevada",
+    #             "mensaje": (
+    #                 f"Se detectó temperatura máxima de {max_temp:.1f} °C. "
+    #                 "Revisar refrigerante, radiador y ventiladores."
+    #             ),
+    #             "severidad": SEVERIDAD_CRITICAL,
+    #         }
+    #     )
 
     min_oil = registros.aggregate(Min("oil_pressure_psi"))["oil_pressure_psi__min"]
     if min_oil is not None and min_oil < 30:
@@ -260,6 +337,9 @@ def _evaluar_registros(registros):
 
     # alertas por RPM
     recomendaciones.extend(_evaluar_alertas_rpm(registros))
+
+    # alertas por temperatura del motor
+    recomendaciones.extend(_evaluar_alertas_temperatura(registros))
 
     return recomendaciones
 

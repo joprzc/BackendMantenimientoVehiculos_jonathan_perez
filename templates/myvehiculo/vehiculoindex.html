@@ -5,15 +5,7 @@
 
 
 {% block content %}
-<!-- <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    if (location.hash === "#schedulemaintenance-tab-pane") {
-      const tab = document.querySelector('[data-bs-target="#schedulemaintenance-tab-pane"]');
-      if (tab) new bootstrap.Tab(tab).show();
-    }
-  });
-    
-</script> -->
+
 <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
 <script src="{% static 'app1/js/vehiculo_gauges.js' %}"></script>
 
@@ -103,7 +95,7 @@
         Reporte de Servicio
       </button>
     </li>
-    <li class="nav-item" role="presentation">
+    <!-- <li class="nav-item" role="presentation">
       <button
         class="nav-link"
         id="repairs-tab"
@@ -116,8 +108,8 @@
       >
         Reparaciones
       </button>
-    </li>
-    <li class="nav-item" role="presentation">
+    </li> -->
+    <!-- <li class="nav-item" role="presentation">
       <button
         class="nav-link"
         id="fuel-tab"
@@ -130,7 +122,7 @@
       >
         Combustible
       </button>
-    </li>
+    </li> -->
     <li class="nav-item" role="presentation">
       <button
         class="nav-link"
@@ -192,8 +184,28 @@
       role="tabpanel"
       aria-labelledby="notes-tab">
 
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="d-flex flex-column gap-2">
+            <h5 class="mb-1">Descargas del Collector</h5>
+            <a
+              class="btn btn-outline-primary text-start"
+              href="{% static 'app1/downloads/AutoControlCollector-Windows.exe' %}"
+            >
+              <i class="bi bi-windows me-2"></i> Descargar Collector para Windows
+            </a>
+            <a
+              class="btn btn-outline-dark text-start"
+              href="{% static 'app1/downloads/AutoControlCollector-macOS.zip' %}"
+            >
+              <i class="bi bi-apple me-2"></i> Descargar Collector para macOS
+            </a>
+          </div>
+        </div>
+      </div>
+      
       <div class="card">
-        <div class="card-body d-flex justify-content-between align-items-center">
+        <div class="card-body d-flex justify-content-between align-items-start flex-wrap gap-3">
           <div>
             <h5 class="mb-1">Conexión OBDLink MX+</h5>
             <small class="text-muted">

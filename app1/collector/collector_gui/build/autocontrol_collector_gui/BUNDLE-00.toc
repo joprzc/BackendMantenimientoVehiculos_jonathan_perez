@@ -1,0 +1,3 @@
+([('autocontrol_collector_gui',
+   '/Users/jonathanperez/ists/proyectos/AppMantenimiento/registro/app1/collector/collector_gui/dist/autocontrol_collector_gui',
+   'EXECUTABLE')],)

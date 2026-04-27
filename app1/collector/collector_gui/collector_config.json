@@ -1,0 +1,8 @@
+
+{
+  "api_url": "http://127.0.0.1:8000/api/obd/ingest/",
+  "api_key": "OBD_INGEST_API_KEY",
+  "vehicle_code": "ABC5543",
+  "interval_seconds": 2,
+  "demo_mode": true
+}

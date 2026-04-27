@@ -52,7 +52,7 @@ urlpatterns = [
         OBDPortSelectionAPIView.as_view(),
         name="api_obd_port_select",
     ),
-    path("api/obd/ingest/", OBDIngestAPIView.as_view(), name="api_obd_ingest"),
+    # path("api/obd/ingest/", OBDIngestAPIView.as_view(), name="api_obd_ingest"),
     path(
         "api/vehiculos/<int:vehiculo_id>/gauges/",
         api_vehicle_gauges,
