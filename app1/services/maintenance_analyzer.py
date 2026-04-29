@@ -271,27 +271,121 @@ def _evaluar_alertas_temperatura(registros):
     return recomendaciones
 
 
+# ----------------------------------------------------------
+# evaluar bateria (battery_voltage_v)
+# ----------------------------------------------------------
+def _evaluar_alertas_bateria(registros):
+    """
+    Evalúa battery_voltage_v y devuelve recomendaciones de mantenimiento.
+    """
+    recomendaciones = []
+    data = list(registros)
+
+    if not data:
+        return recomendaciones
+
+    voltajes_validos = [
+        r.battery_voltage_v for r in data if r.battery_voltage_v is not None
+    ]
+
+    if not voltajes_validos:
+        return recomendaciones
+
+    max_voltaje = max(voltajes_validos)
+    min_voltaje = min(voltajes_validos)
+
+    registros_motor_encendido = [
+        r
+        for r in data
+        if r.engine_rpm is not None
+        and r.engine_rpm > 500
+        and r.battery_voltage_v is not None
+    ]
+
+    # 1. Batería crítica con motor encendido
+    criticos = [r for r in registros_motor_encendido if r.battery_voltage_v < 12.5]
+
+    if len(criticos) >= 1:
+        recomendaciones.append(
+            {
+                "codigo": "BATERIA_CRITICA",
+                "titulo": "Voltaje crítico de batería",
+                "mensaje": (
+                    f"Se detectó un voltaje mínimo de {min_voltaje:.1f} V con el motor encendido. "
+                    "El vehículo podría estar funcionando solo con la energía de la batería. "
+                    "Revisar alternador, batería, bornes y sistema de carga."
+                ),
+                "severidad": SEVERIDAD_CRITICAL,
+            }
+        )
+
+    # 2. Carga insuficiente
+    bajos = [r for r in registros_motor_encendido if 12.5 <= r.battery_voltage_v < 13.2]
+
+    if len(bajos) >= 3:
+        recomendaciones.append(
+            {
+                "codigo": "BATERIA_CARGA_INSUFICIENTE",
+                "titulo": "Carga insuficiente del sistema eléctrico",
+                "mensaje": (
+                    f"Se detectaron {len(bajos)} registros con voltaje menor a 13.2 V. "
+                    "Esto puede indicar fallas en el alternador, correa floja o batería descargándose."
+                ),
+                "severidad": SEVERIDAD_WARNING,
+            }
+        )
+
+    # 3. Sobrecarga eléctrica
+    sobrecargas = [r for r in registros_motor_encendido if r.battery_voltage_v > 15.0]
+
+    if len(sobrecargas) >= 1:
+        recomendaciones.append(
+            {
+                "codigo": "BATERIA_SOBRECARGA",
+                "titulo": "Sobrecarga del sistema eléctrico",
+                "mensaje": (
+                    f"Se detectó un voltaje máximo de {max_voltaje:.1f} V. "
+                    "Puede existir una falla en el regulador de voltaje o alternador, "
+                    "lo cual puede dañar sensores, ECU o batería."
+                ),
+                "severidad": SEVERIDAD_CRITICAL,
+            }
+        )
+
+    # 4. Voltaje inestable
+    variaciones_bruscas = 0
+
+    for i in range(len(data) - 1):
+        actual = data[i].battery_voltage_v
+        siguiente = data[i + 1].battery_voltage_v
+
+        if actual is None or siguiente is None:
+            continue
+
+        if abs(actual - siguiente) > 1.0:
+            variaciones_bruscas += 1
+
+    if variaciones_bruscas >= 2:
+        recomendaciones.append(
+            {
+                "codigo": "BATERIA_VOLTAJE_INESTABLE",
+                "titulo": "Voltaje de batería inestable",
+                "mensaje": (
+                    f"Se detectaron {variaciones_bruscas} variaciones bruscas de voltaje. "
+                    "Revisar bornes, cableado, alternador o posibles falsos contactos."
+                ),
+                "severidad": SEVERIDAD_WARNING,
+            }
+        )
+
+    return recomendaciones
+
+
 def _evaluar_registros(registros):
     """
     Devuelve una lista de dicts con recomendaciones basadas en las métricas.
     """
     recomendaciones = []
-
-    # La evaluación de engine_temp_c se realiza en _evaluar_alertas_temperatura()
-    # max_temp = registros.aggregate(Max("engine_temp_c"))["engine_temp_c__max"]
-
-    # if max_temp is not None and max_temp >= 100:
-    #     recomendaciones.append(
-    #         {
-    #             "codigo": "TEMP_ALTA",
-    #             "titulo": "Temperatura del motor elevada",
-    #             "mensaje": (
-    #                 f"Se detectó temperatura máxima de {max_temp:.1f} °C. "
-    #                 "Revisar refrigerante, radiador y ventiladores."
-    #             ),
-    #             "severidad": SEVERIDAD_CRITICAL,
-    #         }
-    #     )
 
     min_oil = registros.aggregate(Min("oil_pressure_psi"))["oil_pressure_psi__min"]
     if min_oil is not None and min_oil < 30:
@@ -307,19 +401,19 @@ def _evaluar_registros(registros):
             }
         )
 
-    min_volt = registros.aggregate(Min("battery_voltage_v"))["battery_voltage_v__min"]
-    if min_volt is not None and min_volt < 12.0:
-        recomendaciones.append(
-            {
-                "codigo": "BATERIA_BAJA",
-                "titulo": "Voltaje de batería bajo",
-                "mensaje": (
-                    f"Voltaje mínimo registrado: {min_volt:.1f} V. "
-                    "Revisar batería y sistema de carga."
-                ),
-                "severidad": SEVERIDAD_WARNING,
-            }
-        )
+    # min_volt = registros.aggregate(Min("battery_voltage_v"))["battery_voltage_v__min"]
+    # if min_volt is not None and min_volt < 12.0:
+    #     recomendaciones.append(
+    #         {
+    #             "codigo": "BATERIA_BAJA",
+    #             "titulo": "Voltaje de batería bajo",
+    #             "mensaje": (
+    #                 f"Voltaje mínimo registrado: {min_volt:.1f} V. "
+    #                 "Revisar batería y sistema de carga."
+    #             ),
+    #             "severidad": SEVERIDAD_WARNING,
+    #         }
+    #     )
 
     # if registros.filter(engine_failure_imminent=True).exists():
     if any(r.engine_failure_imminent for r in registros):
@@ -340,6 +434,9 @@ def _evaluar_registros(registros):
 
     # alertas por temperatura del motor
     recomendaciones.extend(_evaluar_alertas_temperatura(registros))
+
+    # alertas por batería
+    recomendaciones.extend(_evaluar_alertas_bateria(registros))
 
     return recomendaciones
 

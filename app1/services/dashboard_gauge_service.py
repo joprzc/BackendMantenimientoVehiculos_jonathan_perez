@@ -44,8 +44,38 @@ def get_vehicle_gauge_data(vehiculo):
 
     rpm = latest.engine_rpm
     temp = latest.engine_temp_c
-    battery = latest.battery_voltage_v
+
+    # estado dinámico para batería
+    battery_voltage = latest.battery_voltage_v
+
+    if battery_voltage is None:
+        battery_status = "unknown"
+        battery_value = 0
+
+    elif battery_voltage < 12.5 or battery_voltage > 15.0:
+        battery_status = "critical"
+        battery_value = battery_voltage
+
+    elif battery_voltage < 13.5:
+        battery_status = "warning"
+        battery_value = battery_voltage
+
+    else:
+        battery_status = "ok"
+        battery_value = battery_voltage
+    # battery_status = "unknown"
+    # if battery is None:
+    #     battery_status = "unknown"
+    # elif battery < 12.5 or battery > 15.0:
+    #     battery_status = "critical"
+    # elif battery < 13.5:
+    #     battery_status = "warning"
+    # else:
+    #     battery_status = "ok"
+
+    # estado dinamico para combustible
     fuel = latest.fuel_level_percent
+    # estado dinamico para aceite
     oil = latest.oil_pressure_psi
 
     gauges = {
@@ -67,11 +97,17 @@ def get_vehicle_gauge_data(vehiculo):
         },
         "battery": {
             "title": "Batería",
-            "value": round(battery or 0, 2),
-            "min": 0,
+            "value": round(battery_value, 2),
+            "min": 10,
             "max": 16,
             "unit": "V",
-            "status": _status_from_ranges(battery, warning_min=12.2, critical_min=11.8),
+            "status": battery_status,
+            # "title": "Batería",
+            # "value": round(battery or 0, 2),
+            # "min": 0,
+            # "max": 16,
+            # "unit": "V",
+            # "status": _status_from_ranges(battery, warning_min=12.2, critical_min=11.8),
         },
         "fuel": {
             "title": "Combustible",

@@ -1,13 +1,35 @@
 function gaugeColorByStatus(status) {
+  // if (status === "critical") return "#dc3545";
+  // if (status === "warning") return "#ffc107";
+  // if (status === "ok") return "#58D9F9";
+  // rojo
   if (status === "critical") return "#dc3545";
+
+  // amarillo
   if (status === "warning") return "#ffc107";
-  if (status === "ok") return "#58D9F9";
+
+  // verde
+  if (status === "ok") return "#28a745";
+  // gris
   return "#6c757d";
 }
 
 function buildGaugeOption(gaugeData) {
   const mainColor = gaugeColorByStatus(gaugeData.status);
   const unitText = gaugeData.unit || "";
+  
+  // definir colores del eje según el tipo de gauge
+  let axisColors = [[1, mainColor]];
+
+  if (gaugeData.title === "Batería") {
+
+    axisColors = [
+
+      [0.416, "#dc3545"],
+      [0.583, "#ffc107"],
+      [1, "#28a745"]
+    ];
+  }
 
   return {
     series: [
@@ -42,6 +64,23 @@ function buildGaugeOption(gaugeData) {
             width: 18
           }
         },
+        // axisLine: {
+        //   roundCap: true,
+        //   lineStyle: {
+        //     width: 18,
+        //     color: [
+
+        //       // rojo crítico
+        //       [0.416, "#dc3545"],
+
+        //       // amarillo advertencia
+        //       [0.583, "#ffc107"],
+
+        //       // verde normal
+        //       [1, "#28a745"]
+        //     ]
+        //   }
+        // },
         axisTick: {
           splitNumber: 2,
           lineStyle: {
