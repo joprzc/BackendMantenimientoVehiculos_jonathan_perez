@@ -191,7 +191,7 @@ WSGI_APPLICATION = "registro.wsgi.application"
 
 # bloque de base de datos
 if DATABASE_URL:
-    db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=0)
     if db_config["ENGINE"] == "django.db.backends.postgresql":
         db_config.setdefault("OPTIONS", {})
         db_config["OPTIONS"]["sslmode"] = "require"

@@ -63,18 +63,20 @@ def get_vehicle_gauge_data(vehiculo):
     else:
         battery_status = "ok"
         battery_value = battery_voltage
-    # battery_status = "unknown"
-    # if battery is None:
-    #     battery_status = "unknown"
-    # elif battery < 12.5 or battery > 15.0:
-    #     battery_status = "critical"
-    # elif battery < 13.5:
-    #     battery_status = "warning"
-    # else:
-    #     battery_status = "ok"
 
     # estado dinamico para combustible
     fuel = latest.fuel_level_percent
+
+    fuel_status = "ok"
+    if fuel is None:
+        fuel_status = "unknown"
+    elif fuel <= 10:
+        fuel_status = "critical"
+    elif fuel <= 20:
+        fuel_status = "warning"
+    else:
+        fuel_status = "ok"
+
     # estado dinamico para aceite
     oil = latest.oil_pressure_psi
 
@@ -112,10 +114,10 @@ def get_vehicle_gauge_data(vehiculo):
         "fuel": {
             "title": "Combustible",
             "value": round(fuel or 0, 2),
-            "min": 0,
-            "max": 100,
-            "unit": "%",
-            "status": _status_from_ranges(fuel, warning_min=25, critical_min=10),
+            "min": 0,  #
+            "max": 100,  #
+            "unit": "%",  #
+            "status": fuel_status,
         },
         "oil_pressure": {
             "title": "Presión aceite",

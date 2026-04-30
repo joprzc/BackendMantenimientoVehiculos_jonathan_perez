@@ -22,11 +22,17 @@ function buildGaugeOption(gaugeData) {
   let axisColors = [[1, mainColor]];
 
   if (gaugeData.title === "Batería") {
-
     axisColors = [
-
       [0.416, "#dc3545"],
       [0.583, "#ffc107"],
+      [1, "#28a745"]
+    ];
+  }
+
+  if (gaugeData.title === "Combustible") {
+    axisColors = [
+      [0.10, "#dc3545"],
+      [0.20, "#ffc107"],
       [1, "#28a745"]
     ];
   }
@@ -61,7 +67,8 @@ function buildGaugeOption(gaugeData) {
         axisLine: {
           roundCap: true,
           lineStyle: {
-            width: 18
+            width: 18,
+            color: axisColors
           }
         },
         // axisLine: {

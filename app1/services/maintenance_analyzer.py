@@ -381,6 +381,95 @@ def _evaluar_alertas_bateria(registros):
     return recomendaciones
 
 
+# ----------------------------------------------------------
+# evaluar combustible (fuel_level_percent)
+# ----------------------------------------------------------
+def _evaluar_alertas_combustible(registros):
+    recomendaciones = []
+    data = list(registros)
+
+    if not data:
+        return recomendaciones
+
+    # comprension de listas para extraer niveles de combustible válidos
+    niveles_validos = [
+        r.fuel_level_percent for r in data if r.fuel_level_percent is not None
+    ]
+
+    if not niveles_validos:
+        return recomendaciones
+
+    min_fuel = min(niveles_validos)
+
+    # 1. Combustible crítico
+    criticos = [
+        r
+        for r in data
+        if r.fuel_level_percent is not None and r.fuel_level_percent <= 10
+    ]
+
+    if len(criticos) >= 2:
+        recomendaciones.append(
+            {
+                "codigo": "COMBUSTIBLE_CRITICO",
+                "titulo": "Nivel crítico de combustible",
+                "mensaje": (
+                    f"Se detectó un nivel mínimo de combustible de {min_fuel:.1f}%. "
+                    "El vehículo se encuentra en reserva. Se recomienda abastecer inmediatamente."
+                ),
+                "severidad": SEVERIDAD_CRITICAL,
+            }
+        )
+
+    # 2. Combustible bajo
+    bajos = [
+        r
+        for r in data
+        if r.fuel_level_percent is not None and 10 < r.fuel_level_percent <= 20
+    ]
+
+    if len(bajos) >= 3:
+        recomendaciones.append(
+            {
+                "codigo": "COMBUSTIBLE_BAJO",
+                "titulo": "Nivel bajo de combustible",
+                "mensaje": (
+                    f"Se detectaron {len(bajos)} registros con combustible bajo. "
+                    "Se recomienda abastecer pronto para evitar interrupciones durante el recorrido."
+                ),
+                "severidad": SEVERIDAD_WARNING,
+            }
+        )
+
+    # 3. Posible falla del sensor
+    cambios_bruscos = 0
+
+    for i in range(len(data) - 1):
+        actual = data[i].fuel_level_percent
+        siguiente = data[i + 1].fuel_level_percent
+
+        if actual is None or siguiente is None:
+            continue
+
+        if abs(actual - siguiente) > 25:
+            cambios_bruscos += 1
+
+    if cambios_bruscos >= 2:
+        recomendaciones.append(
+            {
+                "codigo": "COMBUSTIBLE_SENSOR_INESTABLE",
+                "titulo": "Lectura inestable del combustible",
+                "mensaje": (
+                    f"Se detectaron {cambios_bruscos} variaciones bruscas en el nivel de combustible. "
+                    "Revisar aforador, flotador, cableado o sensor del tanque."
+                ),
+                "severidad": SEVERIDAD_WARNING,
+            }
+        )
+
+    return recomendaciones
+
+
 def _evaluar_registros(registros):
     """
     Devuelve una lista de dicts con recomendaciones basadas en las métricas.
@@ -400,20 +489,6 @@ def _evaluar_registros(registros):
                 "severidad": SEVERIDAD_CRITICAL,
             }
         )
-
-    # min_volt = registros.aggregate(Min("battery_voltage_v"))["battery_voltage_v__min"]
-    # if min_volt is not None and min_volt < 12.0:
-    #     recomendaciones.append(
-    #         {
-    #             "codigo": "BATERIA_BAJA",
-    #             "titulo": "Voltaje de batería bajo",
-    #             "mensaje": (
-    #                 f"Voltaje mínimo registrado: {min_volt:.1f} V. "
-    #                 "Revisar batería y sistema de carga."
-    #             ),
-    #             "severidad": SEVERIDAD_WARNING,
-    #         }
-    #     )
 
     # if registros.filter(engine_failure_imminent=True).exists():
     if any(r.engine_failure_imminent for r in registros):
@@ -437,6 +512,9 @@ def _evaluar_registros(registros):
 
     # alertas por batería
     recomendaciones.extend(_evaluar_alertas_bateria(registros))
+
+    # alertas por combustible
+    recomendaciones.extend(_evaluar_alertas_combustible(registros))
 
     return recomendaciones
 
@@ -475,46 +553,3 @@ def analizar_vehiculo_y_guardar(vehiculo, max_registros=500, ventana_horas=24):
         if creada:
             nuevas.append(creada)
     return nuevas
-
-
-# probar en shell:
-# from app1.models import Vehiculo
-# from app1.services.maintenance_analyzer import analizar_vehiculo_y_guardar
-# vehiculo = Vehiculo.objects.first()
-# analizar_vehiculo_y_guardar(vehiculo)
-
-# verificar persistencia
-# vehiculo.recomendaciones.all()
-
-
-# 4 Obtener registros recientes (función privada)
-# funcion privada con "_"
-# una sola responsabilidad
-# def _obtener_registros_recientes(vehiculo, max_registros, ventana_horas):
-#     """Obtiene los registros OBD-II recientes del vehículo."""
-#     desde = timezone.now() - timedelta(hours=ventana_horas)
-
-#     return obddata.objects.filter(
-#         vehiculo=vehiculo,
-#         timestamp__gte=desde,  # __gte significa "Greater Than or Equal" (>=)
-#     ).order_by("-timestamp")[:max_registros]
-
-
-# 5 Estructura de salida (opcional pero recomendable)
-# esto sirve para api, dashboards, historico, etc.
-# def analizar_vehiculo_detallado(vehiculo):
-#     """Analiza el vehículo y devuelve un informe detallado."""
-
-#     recomendaciones = analizar_vehiculo(vehiculo)
-
-#     return {
-#         "vehiculo_id": vehiculo.id,
-#         "total_recomendaciones": len(recomendaciones),
-#         "recomendaciones": recomendaciones,
-#     }
-
-
-# 6 Instrucciones para probar el servicio
-
-# vehiculo = Vehiculo.objects.first()
-# analizar_vehiculo(vehiculo)
