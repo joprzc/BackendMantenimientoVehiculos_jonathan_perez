@@ -1,13 +1,13 @@
 from ast import If
 from operator import ge
-from django.http import JsonResponse, HttpResponse, HttpResponseNotAllowed
 from django.core.mail import send_mail
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse, HttpResponse, HttpResponseNotAllowed
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import Mantenimiento, Vehiculo, obddata
+from .models import Mantenimiento, Vehiculo, obddata, RecomendacionMantenimiento
 from .forms import MantenimientoForm, VehiculoForm, MODELOS_POR_MARCA
 from django.views.decorators.http import require_POST  # bloquea metodos no permitidos
 from django.contrib import messages  # para mensajes flash
@@ -42,6 +42,11 @@ from app1.services.dashboard_gauge_service import get_vehicle_gauge_data
 from urllib.parse import quote
 from app1.forms import WhatsappMaintenanceForm
 from .services.whatsapp_service import send_whatsapp
+
+# PDF report
+from app1.services.report_service import generar_pdf_recomendaciones
+from django.template.loader import get_template
+from xhtml2pdf import pisa
 
 
 # Create your views here.
@@ -685,3 +690,61 @@ def analizar_vehiculo_action(request, vehiculo_id):
         )
         # return redirect("vehiculo_dashboard", vehiculo_id=vehiculo.id)
     return redirect("vehiculo_index", id=vehiculo.id)
+
+
+# reportes PDF
+def reporte_recomendaciones_pdf(request, vehiculo_id):
+
+    vehiculo = Vehiculo.objects.get(id=vehiculo_id)
+
+    recomendaciones = RecomendacionMantenimiento.objects.filter(
+        vehiculo=vehiculo
+    ).order_by("-fecha_creacion")
+
+    pdf = generar_pdf_recomendaciones(vehiculo, recomendaciones)
+
+    response = HttpResponse(pdf, content_type="application/pdf")
+
+    filename = f"reporte_{vehiculo.placa}.pdf"
+
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    return response
+
+
+# vistas del pdf
+def reporte_recomendaciones_pdf(request, vehiculo_id):
+    vehiculo = get_object_or_404(Vehiculo, id=vehiculo_id)
+
+    recomendaciones = RecomendacionMantenimiento.objects.filter(
+        vehiculo=vehiculo
+    ).order_by("-fecha_creacion")
+
+    total_recomendaciones = recomendaciones.count()
+    pendientes = recomendaciones.filter(estado="pendiente").count()
+    atendidas = recomendaciones.filter(estado="atendido").count()
+    criticas = recomendaciones.filter(severidad="critica").count()
+
+    template = get_template("reportes/reporte_recomendaciones_pdf.html")
+
+    context = {
+        "vehiculo": vehiculo,
+        "recomendaciones": recomendaciones,
+        "total_recomendaciones": total_recomendaciones,
+        "pendientes": pendientes,
+        "atendidas": atendidas,
+        "criticas": criticas,
+    }
+
+    html = template.render(context)
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="reporte_recomendaciones_{vehiculo.placa}.pdf"'
+    )
+
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse("Error al generar el PDF", status=500)
+
+    return response

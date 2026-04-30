@@ -8,7 +8,6 @@ from django.conf import settings
 
 import app1
 
-
 PLACA_REGEX = re.compile(r"^[A-Z]{3}-\d{4}$")
 
 
@@ -160,6 +159,12 @@ class obddata(models.Model):
             return False
 
         if self.engine_temp_c is not None and not (-20 <= self.engine_temp_c <= 150):
+            return False
+
+        # validacion para combustible
+        if self.fuel_level_percent is not None and not (
+            0 <= self.fuel_level_percent <= 100
+        ):
             return False
 
         return True

@@ -81,6 +81,7 @@
         Agendar Mantenimiento
       </button>
     </li>
+
     <li class="nav-item" role="presentation">
       <button
         class="nav-link"
@@ -150,7 +151,7 @@
         {% include 'myvehiculo/agenda.html' %}
         
     </div>
-    
+    <!-- pestaña conexiones -->
     <div
       class="tab-pane fade"
       id="notes-tab-pane"
@@ -193,7 +194,27 @@
       </div>
       {% include 'myvehiculo/_obd_modal.html' %}
     </div>
-         
+    
+    <!-- pestaña reporte de servicio -->
+    <div class="tab-pane fade" id="servicereport-tab-pane" role="tabpanel" aria-labelledby="servicereport-tab">
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">Reporte de Servicio</h5>
+        </div>
+    
+        <div class="card-body">
+          <p class="text-muted">
+            Genera un reporte PDF con las recomendaciones automáticas de mantenimiento
+            registradas para este vehículo.
+          </p>
+    
+          <a href="{% url 'reporte_recomendaciones_pdf' vehiculo.id %}" class="btn btn-danger">
+            <i class="bi bi-file-earmark-pdf"></i>
+            Descargar reporte de recomendaciones
+          </a>
+        </div>
+      </div>
+    </div>
   </div> 
   
 

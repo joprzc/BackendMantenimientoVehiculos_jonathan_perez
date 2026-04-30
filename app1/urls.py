@@ -6,7 +6,6 @@ from app1.api.views import OBDIngestAPIView, OBDPortsAPIView, OBDPortSelectionAP
 from app1.views import api_vehicle_gauges
 from .forms import WhatsappMaintenanceForm
 
-
 urlpatterns = [
     # Rutas para mantenimientos
     path("agenda/nuevo/", views.mantenimiento_create, name="mantenimiento_create"),
@@ -67,5 +66,11 @@ urlpatterns = [
         "mantenimiento/<int:mantenimiento_id>/notify-whatsapp/",
         views.mantenimiento_notify_whatsapp,
         name="mantenimiento_notify_whatsapp",
+    ),
+    # ruta para generar reportes PDF
+    path(
+        "vehiculo/<int:vehiculo_id>/reporte-recomendaciones/pdf/",
+        views.reporte_recomendaciones_pdf,
+        name="reporte_recomendaciones_pdf",
     ),
 ]
