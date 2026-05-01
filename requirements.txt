@@ -16,7 +16,6 @@ cssselect2==0.9.0
 customtkinter==5.2.2
 darkdetect==0.8.0
 dj-database-url==3.1.2
-Django==6.0.3
 django-cors-headers==4.9.0
 django-crispy-forms==2.6
 djangorestframework==3.17.1
@@ -64,6 +63,8 @@ tzlocal==5.3.1
 uritools==6.0.2
 urllib3==2.6.3
 webencodings==0.5.1
+Django==6.0.3
+gunicorn
 whitenoise==6.12.0
 xhtml2pdf==0.2.17
 yarl==1.23.0
