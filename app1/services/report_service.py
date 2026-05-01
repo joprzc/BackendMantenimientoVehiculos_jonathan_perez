@@ -34,7 +34,7 @@ def generar_pdf_recomendaciones(vehiculo, recomendaciones):
     for r in recomendaciones:
         data.append(
             [
-                str(r.fecha.strftime("%Y-%m-%d")),
+                str(r.fecha_creacion.strftime("%Y-%m-%d")),
                 r.tipo,
                 r.mensaje,
                 r.severidad,
