@@ -146,38 +146,37 @@ def agenda(request):
 
 
 # crear
+@login_required(login_url="login")
 def mantenimiento_create(request):
-    # cancel_url = request.GET.get("next") or reverse("agenda")
-    cancel_url = (
-        request.GET.get("next")
-        or reverse("vehiculo_index", args=[vehiculo_id])
-        or reverse("agenda")
-    )
+    next_url = request.GET.get("next") or request.POST.get("next") or reverse("agenda")
 
     if request.method == "POST":
         form = MantenimientoForm(request.POST)
+
         if form.is_valid():
-            # form.save()
             mantenimiento = form.save()
             messages.success(request, "Mantenimiento creado exitosamente.")
-            next_url = (
-                request.POST.get("next")
-                or cancel_url
-                or reverse("vehiculo_index", args=[mantenimiento.vehiculo.id])
-            )
-            return redirect(next_url)
-            # return redirect("agenda")
-            # return redirect("vehiculo_index", id=form.cleaned_data["vehiculo"].id)
-            # return redirect("vehiculo_index", id=mantenimiento.vehiculo.id)
+
+            # redirect_url = request.POST.get("next") or reverse(
+            #     "vehiculo_index", args=[mantenimiento.vehiculo.id]
+            # )
+
+            return redirect(redirect_url)
+
     else:
         form = MantenimientoForm()
+
+        vehiculo_id = request.GET.get("vehiculo_id")
+        if vehiculo_id:
+            form.fields["vehiculo"].initial = vehiculo_id
 
     return render(
         request,
         "mantenimiento_form.html",
         {
             "form": form,
-            "cancel_url": cancel_url,
+            "cancel_url": next_url,
+            "next": next_url,
         },
     )
 
@@ -311,6 +310,7 @@ def vehiculo_index(request, id):
     context = {
         "vehiculo": vehiculo,
         "mantenimientos": vehiculo.mantenimientos.all(),
+        "mantenimiento_form": MantenimientoForm(initial={"vehiculo": vehiculo}),
         "horas_motor": horas_motor,
         "km_estimados": km_estimados,
         "rpm_alta_min": rpm_alta_min,

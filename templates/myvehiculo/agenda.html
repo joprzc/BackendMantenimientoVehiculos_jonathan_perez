@@ -1,5 +1,3 @@
-
-
 <div class="container mt-4">
     
     <table class="table table-striped">
@@ -54,15 +52,15 @@
         </tbody>
     </table>
     
+
     {% if vehiculo %}
-        <a href="{% url 'mantenimiento_create' %}?next={% url 'vehiculo_index' vehiculo.id %}#schedulemaintenance-tab-pane"
-            class="btn btn-success">
-            Agregar Mantenimiento
-        </a>
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarMantenimiento">
+        Agregar Mantenimiento
+    </button>
     {% else %}
-        <a href="{% url 'mantenimiento_create' %}" class="btn btn-success">
-            Agregar Mantenimiento
-        </a>
+    <a href="{% url 'mantenimiento_create' %}" class="btn btn-success">
+        Agregar Mantenimiento
+    </a>
     {% endif %}
 
 <style>
