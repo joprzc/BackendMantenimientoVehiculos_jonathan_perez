@@ -1,15 +1,5 @@
 {% load static %}
 
-
-<!-- <div class="alert alert-secondary mt-2">
-    <strong>OBD vinculados a este vehículo: </strong> {{ obd_count }}
-        {% if last_obd %}
-        | <strong>Último registro:</strong> {{ last_obd.timestamp|date:"Y-m-d H:i" }}
-        {% else %}
-        | <em>No hay registros OBD vinculados</em>
-        {% endif %}    
-</div> -->
-
 <div class="container-fluid">
 
     <!-- Mensajes Django -->
@@ -48,8 +38,9 @@
   <div class="card-body">
     <div id="gauges-error" class="alert alert-warning d-none"></div>
     <div id="gauges-timestamp" class="small text-muted mb-3"></div>
-
+    
     <div class="row">
+      <!-- RPM -->
       <div class="col-md-6 col-xl-4 mb-4">
         <div class="card gauge-card">
           <div class="card-body">
@@ -57,7 +48,7 @@
           </div>
         </div>
       </div>
-
+      <!-- Temperatura -->
       <div class="col-md-6 col-xl-4 mb-4">
         <div class="card gauge-card">
           <div class="card-body">
@@ -65,7 +56,7 @@
           </div>
         </div>
       </div>
-
+      <!-- Batería -->
       <div class="col-md-6 col-xl-4 mb-4">
         <div class="card gauge-card">
           <div class="card-body">
@@ -73,7 +64,7 @@
           </div>
         </div>
       </div>
-
+      <!-- Combustible -->
       <div class="col-md-6 col-xl-6 mb-4">
         <div class="card gauge-card">
           <div class="card-body">
@@ -81,7 +72,7 @@
           </div>
         </div>
       </div>
-
+      <!-- Presión Aceite -->
       <div class="col-md-6 col-xl-6 mb-4">
         <div class="card gauge-card">
           <div class="card-body">
@@ -138,7 +129,7 @@
     </div>
 </div>
 <!-- Recomendaciones atendidas -->
-<div class="card mt-3">
+<!-- <div class="card mt-3">
     <div class="card-header">
         <strong>Histotial ultimas atendidas</strong>
     </div>
@@ -170,5 +161,5 @@
         <div class="p-3 text-muted">No hay recomendaciones atendidas.</div>
         {% endif %}
     </div>
-</div>
+</div> -->
 

@@ -470,25 +470,94 @@ def _evaluar_alertas_combustible(registros):
     return recomendaciones
 
 
+# ----------------------------------------------------------
+# evaluar presión de aceite (oil_pressure_psi)
+# ----------------------------------------------------------
+def _evaluar_alertas_presion_aceite(registros):
+    recomendaciones = []
+    data = list(registros)
+
+    if not data:
+        return recomendaciones
+
+    presiones_validas = [
+        r.oil_pressure_psi for r in data if r.oil_pressure_psi is not None
+    ]
+
+    if not presiones_validas:
+        return recomendaciones
+
+    min_oil = min(presiones_validas)
+
+    # 1. Presión crítica de aceite
+    criticos = [
+        r for r in data if r.oil_pressure_psi is not None and r.oil_pressure_psi < 10
+    ]
+
+    if len(criticos) >= 1:
+        recomendaciones.append(
+            {
+                "codigo": "ACEITE_PRESION_CRITICA",
+                "titulo": "Presión crítica de aceite",
+                "mensaje": (
+                    f"Se detectó una presión mínima de aceite de {min_oil:.1f} PSI. "
+                    "Se recomienda detener el vehículo y apagar el motor para evitar daños internos graves."
+                ),
+                "severidad": SEVERIDAD_CRITICAL,
+            }
+        )
+
+    # 2. Presión baja de aceite
+    bajos = [
+        r
+        for r in data
+        if r.oil_pressure_psi is not None and 10 <= r.oil_pressure_psi < 20
+    ]
+
+    if len(bajos) >= 3:
+        recomendaciones.append(
+            {
+                "codigo": "ACEITE_PRESION_BAJA",
+                "titulo": "Presión baja de aceite",
+                "mensaje": (
+                    f"Se detectaron {len(bajos)} registros con presión de aceite baja. "
+                    "Revisar nivel de aceite, viscosidad, filtro, bomba de aceite o posibles fugas."
+                ),
+                "severidad": SEVERIDAD_WARNING,
+            }
+        )
+
+    # 3. Presión baja con temperatura alta
+    baja_con_temp_alta = [
+        r
+        for r in data
+        if r.oil_pressure_psi is not None
+        and r.engine_temp_c is not None
+        and r.oil_pressure_psi < 20
+        and r.engine_temp_c >= 105
+    ]
+
+    if len(baja_con_temp_alta) >= 2:
+        recomendaciones.append(
+            {
+                "codigo": "ACEITE_BAJO_TEMPERATURA_ALTA",
+                "titulo": "Presión de aceite baja con temperatura elevada",
+                "mensaje": (
+                    "Se detectó presión de aceite baja junto con temperatura elevada del motor. "
+                    "Esto puede indicar aceite degradado, viscosidad incorrecta o sobrecalentamiento."
+                ),
+                "severidad": SEVERIDAD_CRITICAL,
+            }
+        )
+
+    return recomendaciones
+
+
 def _evaluar_registros(registros):
     """
     Devuelve una lista de dicts con recomendaciones basadas en las métricas.
     """
     recomendaciones = []
-
-    min_oil = registros.aggregate(Min("oil_pressure_psi"))["oil_pressure_psi__min"]
-    if min_oil is not None and min_oil < 30:
-        recomendaciones.append(
-            {
-                "codigo": "ACEITE_BAJO",
-                "titulo": "Presión de aceite baja",
-                "mensaje": (
-                    f"Presión mínima registrada: {min_oil:.1f} psi. "
-                    "Verificar nivel/calidad de aceite y posibles fugas."
-                ),
-                "severidad": SEVERIDAD_CRITICAL,
-            }
-        )
 
     # if registros.filter(engine_failure_imminent=True).exists():
     if any(r.engine_failure_imminent for r in registros):
@@ -515,6 +584,9 @@ def _evaluar_registros(registros):
 
     # alertas por combustible
     recomendaciones.extend(_evaluar_alertas_combustible(registros))
+
+    # alertas por presión de aceite
+    recomendaciones.extend(_evaluar_alertas_presion_aceite(registros))
 
     return recomendaciones
 

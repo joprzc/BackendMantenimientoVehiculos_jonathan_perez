@@ -1,67 +1,79 @@
 
 
-    <div class="container mt-4">
-        
-        <table class="table table-striped">
-            <thead>
+<div class="container mt-4">
+    
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Vehículo</th>
+                <th>Descripción</th>
+                <th>Fecha Programada</th>
+                <th>Mecánico</th>
+                <th>Teléfono</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in mantenimientos %}
                 <tr>
-                    <th>Vehículo</th>
-                    <th>Descripción</th>
-                    <th>Fecha Programada</th>
-                    <th>Acciones</th>
-                    <th>Mecánico</th>
-                    <th>Teléfono</th>
+                    <td>{{ m.vehiculo }}</td>
+                    <td>{{ m.descripcion }}</td>
+                    <td>{{ m.fecha }}</td>
+                    <td>{{ m.nombre_mecanico|default:"-" }}</td>
+                    <td>{{ m.telefono_mecanico|default:"-" }}</td>
+                    <td>
+                        
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a href="{% url 'mantenimiento_notify_whatsapp' m.id %}" class="btn btn-success btn-sm btn-action-icon"
+                                target="_blank" title="Enviar por WhatsApp" aria-label="Enviar por WhatsApp">
+                                <i class="bi bi-whatsapp"></i>
+                            </a>
+                        
+                            <a href="{% url 'mantenimiento_edit' m.id %}" class="btn btn-warning btn-sm btn-action-icon"
+                                title="Editar mantenimiento" aria-label="Editar mantenimiento">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                        
+                            <form method="post" action="{% url 'mantenimiento_delete' m.id %}" class="d-inline"
+                                onsubmit="return confirm('¿Eliminar este mantenimiento?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm btn-action-icon" title="Eliminar mantenimiento"
+                                    aria-label="Eliminar mantenimiento">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </form>
+                        </div>        
+                    
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                {% for m in mantenimientos %}
-                    <tr>
-                        <td>{{ m.vehiculo }}</td>
-                        <td>{{ m.descripcion }}</td>
-                        <td>{{ m.fecha }}</td>
-                        <td>{{ m.nombre_mecanico|default:"-" }}</td>
-                        <td>{{ m.telefono_mecanico|default:"-" }}</td>
-                        <td>
-                            
-                            <div class="d-flex gap-1 flex-wrap">
-                                <a href="{% url 'mantenimiento_edit' m.id %}" class="btn btn-warning btn-sm">Editar</a>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No hay mantenimientos programados.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if vehiculo %}
+        <a href="{% url 'mantenimiento_create' %}?next={% url 'vehiculo_index' vehiculo.id %}#schedulemaintenance-tab-pane"
+            class="btn btn-success">
+            Agregar Mantenimiento
+        </a>
+    {% else %}
+        <a href="{% url 'mantenimiento_create' %}" class="btn btn-success">
+            Agregar Mantenimiento
+        </a>
+    {% endif %}
 
-                                <form method="post" action="{% url 'mantenimiento_send_notification' m.id %}" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-info btn-sm">Notificar</button>
-                                </form>
+<style>
+    .btn-action-icon {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+</style>
 
-                                <a href="{% url 'mantenimiento_notify_whatsapp' m.id %}" class="btn btn-success btn-sm" target="_blank">
-                                    WhatsApp
-                                </a>
-
-                                
-
-
-                                <form method="post" action="{% url 'mantenimiento_delete' m.id %}" class="d-inline" onsubmit="return confirm('¿Eliminar este mantenimiento?');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                                </form>
-                            </div>
-
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4">No hay mantenimientos programados.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        
-        {% if vehiculo %}
-            <a href="{% url 'mantenimiento_create' %}?next={% url 'vehiculo_index' vehiculo.id %}#schedulemaintenance-tab-pane"
-               class="btn btn-success">
-               Agregar Mantenimiento
-            </a>
-        {% else %}
-            <a href="{% url 'mantenimiento_create' %}" class="btn btn-success">
-               Agregar Mantenimiento
-            </a>
-        {% endif %}
-    </div>
+</div>

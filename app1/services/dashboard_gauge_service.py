@@ -16,6 +16,7 @@ def _get_queryset_for_vehicle(vehiculo: Vehiculo):
 def _status_from_ranges(
     value, warning_min=None, warning_max=None, critical_min=None, critical_max=None
 ):
+
     if value is None:
         return "unknown"
 
@@ -42,8 +43,25 @@ def get_vehicle_gauge_data(vehiculo):
             "gauges": {},
         }
 
+    # RMP
     rpm = latest.engine_rpm
-    temp = latest.engine_temp_c
+
+    # Temperatura del motor
+    engine_temp_c = latest.engine_temp_c
+
+    engine_temp_status = "ok"
+
+    if engine_temp_c is None:
+        engine_temp_status = "unknown"
+
+    elif engine_temp_c >= 115:
+        engine_temp_status = "critical"
+
+    elif engine_temp_c >= 105:
+        engine_temp_status = "warning"
+
+    else:
+        engine_temp_status = "ok"
 
     # estado dinámico para batería
     battery_voltage = latest.battery_voltage_v
@@ -78,24 +96,44 @@ def get_vehicle_gauge_data(vehiculo):
         fuel_status = "ok"
 
     # estado dinamico para aceite
-    oil = latest.oil_pressure_psi
+    oil_pressure_psi = latest.oil_pressure_psi
 
+    if oil_pressure_psi is None:
+        oil_status = "unknown"
+        oil_value = 0
+
+    elif oil_pressure_psi < 10:
+        oil_status = "critical"
+        oil_value = oil_pressure_psi
+
+    elif oil_pressure_psi < 20:
+        oil_status = "warning"
+        oil_value = oil_pressure_psi
+
+    else:
+        oil_status = "ok"
+        oil_value = oil_pressure_psi
+
+    # normalizamos rpm a miles para mejor visualización
+    rpm_value = (rpm or 0) / 1000
+
+    # construimos el dict de gauges con valores y estados
     gauges = {
         "rpm": {
             "title": "RPM",
-            "value": round(rpm or 0, 2),
+            "value": round(rpm_value, 2),
             "min": 0,
-            "max": 8000,
-            "unit": "RPM",
-            "status": _status_from_ranges(rpm, warning_max=4500, critical_max=6000),
+            "max": 8,
+            "unit": "x1000 RPM",
+            "status": _status_from_ranges(rpm, warning_max=3000, critical_max=4500),
         },
         "temperature": {
             "title": "Temperatura",
-            "value": round(temp or 0, 2),
-            "min": 0,
-            "max": 140,
+            "value": round(engine_temp_c or 0, 2),
             "unit": "°C",
-            "status": _status_from_ranges(temp, warning_max=95, critical_max=105),
+            "status": engine_temp_status,
+            "min": 0,
+            "max": 120,
         },
         "battery": {
             "title": "Batería",
@@ -104,12 +142,6 @@ def get_vehicle_gauge_data(vehiculo):
             "max": 16,
             "unit": "V",
             "status": battery_status,
-            # "title": "Batería",
-            # "value": round(battery or 0, 2),
-            # "min": 0,
-            # "max": 16,
-            # "unit": "V",
-            # "status": _status_from_ranges(battery, warning_min=12.2, critical_min=11.8),
         },
         "fuel": {
             "title": "Combustible",
@@ -120,12 +152,12 @@ def get_vehicle_gauge_data(vehiculo):
             "status": fuel_status,
         },
         "oil_pressure": {
-            "title": "Presión aceite",
-            "value": round(oil or 0, 2),
+            "title": "Presión Aceite",
+            "value": round(oil_value, 2),
             "min": 0,
-            "max": 120,
-            "unit": "psi",
-            "status": _status_from_ranges(oil, warning_min=20, critical_min=10),
+            "max": 80,
+            "unit": "PSI",
+            "status": oil_status,
         },
     }
 
