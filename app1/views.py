@@ -148,7 +148,16 @@ def agenda(request):
 # crear
 @login_required(login_url="login")
 def mantenimiento_create(request):
-    next_url = request.GET.get("next") or request.POST.get("next") or reverse("agenda")
+    vehiculo_id = request.GET.get("vehiculo_id") or request.POST.get("vehiculo")
+
+    default_next = reverse("agenda")
+    if vehiculo_id:
+        default_next = (
+            reverse("vehiculo_index", args=[vehiculo_id])
+            + "#schedulemaintenance-tab-pane"
+        )
+
+    next_url = request.GET.get("next") or request.POST.get("next") or default_next
 
     if request.method == "POST":
         form = MantenimientoForm(request.POST)
@@ -156,19 +165,25 @@ def mantenimiento_create(request):
         if form.is_valid():
             mantenimiento = form.save()
             messages.success(request, "Mantenimiento creado exitosamente.")
-
-            # redirect_url = request.POST.get("next") or reverse(
-            #     "vehiculo_index", args=[mantenimiento.vehiculo.id]
-            # )
-
-            return redirect(redirect_url)
+            return redirect(next_url)
 
     else:
-        form = MantenimientoForm()
-
+        # form = MantenimientoForm()
+        # if vehiculo_id:
+        #     form.fields["vehiculo"].initial = vehiculo_id
         vehiculo_id = request.GET.get("vehiculo_id")
-        if vehiculo_id:
-            form.fields["vehiculo"].initial = vehiculo_id
+        form = MantenimientoForm(vehiculo_inicial=vehiculo_id)
+
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return render(
+            request,
+            "mantenimiento_form_modal.html",
+            {
+                "mantenimiento_form": form,
+                "next": next_url,
+                "modo": "crear",
+            },
+        )
 
     return render(
         request,
@@ -182,15 +197,49 @@ def mantenimiento_create(request):
 
 
 # editar
+@login_required(login_url="login")
 def mantenimiento_edit(request, id):
     mantenimiento = get_object_or_404(Mantenimiento, id=id)
-    form = MantenimientoForm(request.POST or None, instance=mantenimiento)
-    if form.is_valid():
-        form.save()
-        messages.success(request, "Mantenimiento actualizado exitosamente.")
-        # return redirect("vehiculo_index", id=form.cleaned_data["vehiculo"].id)
-        return redirect("vehiculo_index", id=mantenimiento.vehiculo.id)
-    return render(request, "mantenimiento_form.html", {"form": form})
+    next_url = (
+        request.GET.get("next")
+        or request.POST.get("next")
+        or reverse("vehiculo_index", args=[mantenimiento.vehiculo.id])
+        + "#schedulemaintenance-tab-pane"
+    )
+
+    if request.method == "POST":
+        form = MantenimientoForm(request.POST, instance=mantenimiento)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Mantenimiento actualizado correctamente.")
+            return redirect(next_url)
+
+    else:
+        form = MantenimientoForm(instance=mantenimiento)
+
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return render(
+            request,
+            "mantenimiento_form_modal.html",
+            {
+                "mantenimiento_form": form,
+                "mantenimiento": mantenimiento,
+                "next": next_url,
+                "modo": "editar",
+            },
+        )
+
+    return render(
+        request,
+        "mantenimiento_form.html",
+        {
+            "form": form,
+            "mantenimiento": mantenimiento,
+            "cancel_url": next_url,
+            "next": next_url,
+        },
+    )
 
 
 # eliminar

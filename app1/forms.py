@@ -1,11 +1,28 @@
 import re
 from django import forms
 from datetime import date
-from .models import Mantenimiento, Vehiculo, normalizar_placa
+from .models import (
+    Mantenimiento,
+    Vehiculo,
+    RecomendacionMantenimiento,
+    normalizar_placa,
+)
 
 
 # usar ModelForms
 class MantenimientoForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        vehiculo_inicial = kwargs.pop("vehiculo_inicial", None)
+        super().__init__(*args, **kwargs)
+
+        # Solo precargar en creación, no en edición ni en POST inválido
+        if not self.is_bound and not getattr(self.instance, "pk", None):
+            if vehiculo_inicial:
+                self.fields["vehiculo"].initial = vehiculo_inicial
+
+            self.fields["fecha"].initial = date.today()
+
     class Meta:  # clase interna recomendado
         model = Mantenimiento
         # fields = ["vehiculo", "fecha", "descripcion", "estado"]
@@ -144,9 +161,7 @@ class VehiculoForm(forms.ModelForm):
     def clean_placa(self):
         placa = normalizar_placa(self.cleaned_data.get("placa", ""))
         if not re.fullmatch(r"[A-Z]{3}-\d{4}", placa or ""):
-            raise forms.ValidationError(
-                "La placa debe tener el formato ABC-1234."
-            )
+            raise forms.ValidationError("La placa debe tener el formato ABC-1234.")
         return placa
 
     # elegir marca de una lista predefinida

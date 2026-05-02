@@ -27,10 +27,11 @@
                                 <i class="bi bi-whatsapp"></i>
                             </a>
                         
-                            <a href="{% url 'mantenimiento_edit' m.id %}" class="btn btn-warning btn-sm btn-action-icon"
-                                title="Editar mantenimiento" aria-label="Editar mantenimiento">
+                            <button type="button" class="btn btn-warning btn-sm btn-action-icon btn-editar-mantenimiento"
+                                data-url="{% url 'mantenimiento_edit' m.id %}" title="Editar mantenimiento" aria-label="Editar mantenimiento">
                                 <i class="bi bi-pencil-square"></i>
-                            </a>
+                            </button>
+
                         
                             <form method="post" action="{% url 'mantenimiento_delete' m.id %}" class="d-inline"
                                 onsubmit="return confirm('¿Eliminar este mantenimiento?');">
@@ -54,9 +55,11 @@
     
 
     {% if vehiculo %}
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarMantenimiento">
+    <button type="button" class="btn btn-success btn-agregar-mantenimiento"
+        data-url="{% url 'mantenimiento_create' %}?vehiculo_id={{ vehiculo.id }}">
         Agregar Mantenimiento
     </button>
+
     {% else %}
     <a href="{% url 'mantenimiento_create' %}" class="btn btn-success">
         Agregar Mantenimiento

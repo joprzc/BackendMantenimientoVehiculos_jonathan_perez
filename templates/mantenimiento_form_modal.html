@@ -1,12 +1,18 @@
-<form method="post" action="{% url 'mantenimiento_create' %}">
+<form method="post"
+      action="{% if modo == 'editar' %}{% url 'mantenimiento_edit' mantenimiento.id %}{% else %}{% url 'mantenimiento_create' %}{% endif %}">
     {% csrf_token %}
 
-    <input type="hidden" name="next" value="{% url 'vehiculo_index' vehiculo.id %}#schedulemaintenance-tab-pane">
+    <input type="hidden" name="next" value="{{ next }}">
 
     <div class="modal-header">
         <h5 class="modal-title">
-            Agregar Mantenimiento
+            {% if modo == 'editar' %}
+                Editar Mantenimiento
+            {% else %}
+                Agregar Mantenimiento
+            {% endif %}
         </h5>
+
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
     </div>
 
@@ -20,7 +26,11 @@
         </button>
 
         <button type="submit" class="btn btn-success">
-            Guardar mantenimiento
+            {% if modo == 'editar' %}
+                Guardar cambios
+            {% else %}
+                Guardar mantenimiento
+            {% endif %}
         </button>
     </div>
 </form>

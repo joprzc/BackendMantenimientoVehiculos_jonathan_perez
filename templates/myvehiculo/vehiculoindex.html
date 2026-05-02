@@ -224,10 +224,67 @@
 <!-- modal agregar mantenimiento -->
 <div class="modal fade" id="modalAgregarMantenimiento" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      {% include 'mantenimiento_form_modal.html' %}
+    
+    <div class="modal-content" id="contenidoModalMantenimiento">
+      <div class="modal-body p-4 text-center text-muted">
+        Cargando formulario...
+      </div>
     </div>
+
   </div>
 </div>
+
+<!-- JS para cargar editar en el mismo modal -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const modalElement = document.getElementById("modalAgregarMantenimiento");
+    const modalContent = document.getElementById("contenidoModalMantenimiento");
+    const modal = new bootstrap.Modal(modalElement);
+
+    function cargarFormularioMantenimiento(url) {
+      modalContent.innerHTML = `
+            <div class="modal-body p-4 text-center text-muted">
+                Cargando formulario...
+            </div>
+        `;
+
+      fetch(url, {
+        headers: {
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      })
+        .then(response => response.text())
+        .then(html => {
+          modalContent.innerHTML = html;
+          modal.show();
+        })
+        .catch(error => {
+          console.error("Error cargando formulario:", error);
+          modalContent.innerHTML = `
+                <div class="modal-body p-4 text-danger text-center">
+                    No se pudo cargar el formulario.
+                </div>
+            `;
+          modal.show();
+        });
+    }
+
+    document.addEventListener("click", function (event) {
+      const addButton = event.target.closest(".btn-agregar-mantenimiento");
+      const editButton = event.target.closest(".btn-editar-mantenimiento");
+
+      if (addButton) {
+        event.preventDefault();
+        cargarFormularioMantenimiento(addButton.dataset.url);
+      }
+
+      if (editButton) {
+        event.preventDefault();
+        cargarFormularioMantenimiento(editButton.dataset.url);
+      }
+    });
+  });
+</script>
+
 
 {% endblock %}
