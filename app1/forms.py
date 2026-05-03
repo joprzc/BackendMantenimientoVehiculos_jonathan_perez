@@ -12,15 +12,54 @@ from .models import (
 # usar ModelForms
 class MantenimientoForm(forms.ModelForm):
 
+    descripcion = forms.ChoiceField(
+        label="Descripción",
+        required=True,
+        choices=[("", "Seleccione una recomendación pendiente")],
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    # def __init__(self, *args, **kwargs):
+    # vehiculo_inicial = kwargs.pop("vehiculo_inicial", None)
+    # super().__init__(*args, **kwargs)
+
+    # # Solo precargar en creación, no en edición ni en POST inválido
+    # if not self.is_bound and not getattr(self.instance, "pk", None):
+    #     if vehiculo_inicial:
+    #         self.fields["vehiculo"].initial = vehiculo_inicial
+
+    #     self.fields["fecha"].initial = date.today()
+
     def __init__(self, *args, **kwargs):
         vehiculo_inicial = kwargs.pop("vehiculo_inicial", None)
         super().__init__(*args, **kwargs)
 
-        # Solo precargar en creación, no en edición ni en POST inválido
+        vehiculo = self._resolver_vehiculo(vehiculo_inicial)
+        titulos = self._obtener_titulos_pendientes(vehiculo)
+
+        choices = [("", "Seleccione una recomendación pendiente")]
+        choices.extend((titulo, titulo) for titulo in titulos)
+
+        descripcion_actual = ""
+        if getattr(self.instance, "pk", None) and self.instance.descripcion:
+            descripcion_actual = self.instance.descripcion.strip()
+
+        valores_actuales = {valor for valor, _ in choices}
+        if descripcion_actual and descripcion_actual not in valores_actuales:
+            choices.append((descripcion_actual, descripcion_actual))
+
+        self.fields["descripcion"].choices = choices
+        self.fields["descripcion"].help_text = (
+            "Se muestran los últimos títulos de recomendaciones pendientes del vehículo."
+        )
+
+        if descripcion_actual and not self.is_bound:
+            self.initial["descripcion"] = descripcion_actual
+
         if not self.is_bound and not getattr(self.instance, "pk", None):
             if vehiculo_inicial:
-                self.fields["vehiculo"].initial = vehiculo_inicial
-
+                self.fields["vehiculo"].initial = getattr(
+                    vehiculo, "pk", vehiculo_inicial
+                )
             self.fields["fecha"].initial = date.today()
 
     class Meta:  # clase interna recomendado
@@ -62,6 +101,60 @@ class MantenimientoForm(forms.ModelForm):
                 "El teléfono debe incluir código de país. Ejemplo: +593999999999"
             )
         return telefono
+
+    # metodos auxiliares para cargar recomendaciones pendientes
+    def _resolver_vehiculo(self, vehiculo_inicial=None):
+        vehiculo_ref = None
+
+        if self.is_bound:
+            vehiculo_ref = self.data.get("vehiculo")
+        elif getattr(self.instance, "pk", None):
+            return self.instance.vehiculo
+        elif vehiculo_inicial:
+            vehiculo_ref = vehiculo_inicial
+        else:
+            vehiculo_ref = self.initial.get("vehiculo")
+
+        if isinstance(vehiculo_ref, Vehiculo):
+            return vehiculo_ref
+
+        if vehiculo_ref:
+            return Vehiculo.objects.filter(pk=vehiculo_ref).first()
+
+        return None
+
+    def _obtener_titulos_pendientes(self, vehiculo, limite=10):
+        if not vehiculo:
+            return []
+
+        queryset = (
+            RecomendacionMantenimiento.objects.filter(
+                vehiculo=vehiculo,
+                estado="pendiente",
+            )
+            .order_by("-fecha_creacion")
+            .values_list("titulo", flat=True)[:50]
+        )
+
+        titulos = []
+        vistos = set()
+
+        for titulo in queryset:
+            if titulo in vistos:
+                continue
+            titulos.append(titulo)
+            vistos.add(titulo)
+
+            if len(titulos) == limite:
+                break
+
+        return titulos
+
+    def clean_descripcion(self):
+        descripcion = (self.cleaned_data.get("descripcion") or "").strip()
+        if not descripcion:
+            raise forms.ValidationError("Seleccione una recomendación pendiente.")
+        return descripcion
 
 
 # marcas de vehiculos en ecuador
