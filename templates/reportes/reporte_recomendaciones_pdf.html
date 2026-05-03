@@ -109,27 +109,30 @@
     <thead>
       <tr>
         <th>Fecha</th>
-        <th>Tipo</th>
+        <th>Código</th>
+        <th>Título</th>
         <th>Severidad</th>
         <th>Estado</th>
         <th>Mensaje</th>
       </tr>
     </thead>
     <tbody>
-      {% for rec in recomendaciones %}
-        <tr>
-          <td>{{ rec.fecha|date:"Y-m-d H:i" }}</td>
-          <td>{{ rec.tipo }}</td>
-          <td>{{ rec.severidad }}</td>
-          <td>{{ rec.estado }}</td>
-          <td>{{ rec.mensaje }}</td>
-        </tr>
+      {% for rec in reporte_recomendaciones %}
+      <tr>
+        <td>{{ rec.fecha_creacion|date:"Y-m-d H:i" }}</td>
+        <td>{{ rec.codigo }}</td>
+        <td>{{ rec.titulo }}</td>
+        <td>{{ rec.get_severidad_display }}</td>
+        <td>{{ rec.get_estado_display }}</td>
+        <td>{{ rec.mensaje }}</td>
+      </tr>
       {% empty %}
-        <tr>
-          <td colspan="5">No existen recomendaciones registradas para este vehículo.</td>
-        </tr>
+      <tr>
+        <td colspan="6">No existen recomendaciones registradas para este vehículo.</td>
+      </tr>
       {% endfor %}
     </tbody>
+
   </table>
 
   <div class="footer">

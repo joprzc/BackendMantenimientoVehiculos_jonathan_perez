@@ -368,6 +368,7 @@ def vehiculo_index(request, id):
 
     # mismo contexto para _dashboard_content.html
     context.update(build_dashboard_context(vehiculo))
+    context.update(build_reporte_recomendaciones_context(vehiculo))
     context["obd_code"] = getattr(vehiculo, "obd_code", None) or vehiculo.placa
     # context["obd_code"] = vehiculo.obd_code or vehiculo.placa
     # context["selected_obd_port"] = request.session.get("obd_port")
@@ -741,28 +742,51 @@ def analizar_vehiculo_action(request, vehiculo_id):
     return redirect("vehiculo_index", id=vehiculo.id)
 
 
-# reportes PDF
+# reporte PDF
 def reporte_recomendaciones_pdf(request, vehiculo_id):
+    vehiculo = get_object_or_404(Vehiculo, id=vehiculo_id)
 
-    vehiculo = Vehiculo.objects.get(id=vehiculo_id)
+    context = {
+        "vehiculo": vehiculo,
+    }
+    context.update(build_reporte_recomendaciones_context(vehiculo))
 
-    recomendaciones = RecomendacionMantenimiento.objects.filter(
-        vehiculo=vehiculo
-    ).order_by("-fecha_creacion")
+    template = get_template("reportes/reporte_recomendaciones_pdf.html")
+    html = template.render(context)
 
-    pdf = generar_pdf_recomendaciones(vehiculo, recomendaciones)
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="reporte_recomendaciones_{vehiculo.placa}.pdf"'
+    )
 
-    response = HttpResponse(pdf, content_type="application/pdf")
+    pisa_status = pisa.CreatePDF(html, dest=response)
 
-    filename = f"reporte_{vehiculo.placa}.pdf"
-
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    if pisa_status.err:
+        return HttpResponse("Error al generar el PDF", status=500)
 
     return response
 
+    # reportes PDF
+    # def reporte_recomendaciones_pdf(request, vehiculo_id):
 
-# vistas del pdf
-def reporte_recomendaciones_pdf(request, vehiculo_id):
+    #     vehiculo = Vehiculo.objects.get(id=vehiculo_id)
+
+    #     recomendaciones = RecomendacionMantenimiento.objects.filter(
+    #         vehiculo=vehiculo
+    #     ).order_by("-fecha_creacion")
+
+    #     pdf = generar_pdf_recomendaciones(vehiculo, recomendaciones)
+
+    #     response = HttpResponse(pdf, content_type="application/pdf")
+
+    #     filename = f"reporte_{vehiculo.placa}.pdf"
+
+    #     response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    #     return response
+
+    # vistas del pdf
+    # def reporte_recomendaciones_pdf(request, vehiculo_id):
     vehiculo = get_object_or_404(Vehiculo, id=vehiculo_id)
 
     recomendaciones = RecomendacionMantenimiento.objects.filter(
@@ -797,3 +821,18 @@ def reporte_recomendaciones_pdf(request, vehiculo_id):
         return HttpResponse("Error al generar el PDF", status=500)
 
     return response
+
+
+# vista previa de reporte PDF
+def build_reporte_recomendaciones_context(vehiculo):
+    recomendaciones = RecomendacionMantenimiento.objects.filter(
+        vehiculo=vehiculo
+    ).order_by("-fecha_creacion")
+
+    return {
+        "reporte_recomendaciones": recomendaciones,
+        "total_recomendaciones": recomendaciones.count(),
+        "pendientes": recomendaciones.filter(estado="pendiente").count(),
+        "atendidas": recomendaciones.filter(estado="atendido").count(),
+        "criticas": recomendaciones.filter(severidad="critical").count(),
+    }

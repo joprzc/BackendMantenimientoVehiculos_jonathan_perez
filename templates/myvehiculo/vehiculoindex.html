@@ -203,10 +203,57 @@
         </div>
     
         <div class="card-body">
-          <p class="text-muted">
-            Genera un reporte PDF con las recomendaciones automáticas de mantenimiento
-            registradas para este vehículo.
-          </p>
+          <!-- <p class="text-muted">
+            Vista previa del contenido que se descargará en el reporte PDF.
+          </p> -->
+    
+          <div class="row g-3 mb-3">
+            <div class="col-md-3">
+              <div class="alert alert-primary mb-0">Total: {{ total_recomendaciones }}</div>
+            </div>
+            <div class="col-md-3">
+              <div class="alert alert-warning mb-0">Pendientes: {{ pendientes }}</div>
+            </div>
+            <div class="col-md-3">
+              <div class="alert alert-success mb-0">Atendidas: {{ atendidas }}</div>
+            </div>
+            <div class="col-md-3">
+              <div class="alert alert-danger mb-0">Críticas: {{ criticas }}</div>
+            </div>
+          </div>
+    
+          {% if reporte_recomendaciones %}
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Fecha</th>
+                  <th>Código</th>
+                  <th>Título</th>
+                  <th>Severidad</th>
+                  <th>Estado</th>
+                  <th>Mensaje</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for rec in reporte_recomendaciones %}
+                <tr>
+                  <td>{{ rec.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                  <td>{{ rec.codigo }}</td>
+                  <td>{{ rec.titulo }}</td>
+                  <td>{{ rec.get_severidad_display }}</td>
+                  <td>{{ rec.get_estado_display }}</td>
+                  <td>{{ rec.mensaje }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="alert alert-secondary mb-3">
+            No existen recomendaciones registradas para este vehículo.
+          </div>
+          {% endif %}
     
           <a href="{% url 'reporte_recomendaciones_pdf' vehiculo.id %}" class="btn btn-danger">
             <i class="bi bi-file-earmark-pdf"></i>
@@ -216,8 +263,6 @@
       </div>
     </div>
   </div> 
-  
-
   
 </div>
 
