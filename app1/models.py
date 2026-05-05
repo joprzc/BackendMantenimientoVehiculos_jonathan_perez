@@ -132,6 +132,8 @@ class obddata(models.Model):
     coolant_temp_c = models.FloatField(null=True, blank=True)
 
     oil_pressure_psi = models.FloatField(null=True, blank=True)
+    # kilometraje que llega desde OBD/collector
+    odometer_reading = models.FloatField(null=True, blank=True)
 
     # nuevos campos
     # oil_pressure_psi = models.FloatField(null=True, blank=True)

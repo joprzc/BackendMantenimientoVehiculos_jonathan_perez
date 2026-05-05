@@ -61,6 +61,14 @@ function buildGaugeOption(gaugeData) {
     ];
   }
 
+  if (gaugeData.title === "Kilometraje") {
+    axisColors = [
+      [0.384, "#28a745"], // 0 a 100 mil km
+      [0.769, "#ffc107"], // 100 a 200 mil km
+      [1, "#dc3545"], // 200 a 260 mil km
+    ];
+  }
+
   return {
     series: [
       {
@@ -78,7 +86,8 @@ function buildGaugeOption(gaugeData) {
           shadowOffsetY: 2,
         },
         progress: {
-          show: true,
+          // show: true,
+          show: false,
           roundCap: true,
           width: 16,
         },
@@ -165,9 +174,32 @@ function buildGaugeOption(gaugeData) {
   };
 }
 
+// function renderVehicleGauge(containerId, gaugeData) {
+//   const el = document.getElementById(containerId);
+//   if (!el) return;
+
+//   const chart = echarts.init(el);
+//   chart.setOption(buildGaugeOption(gaugeData));
+
+//   window.addEventListener("resize", function () {
+//     chart.resize();
+//   });
+
+//   return chart;
+// }
 function renderVehicleGauge(containerId, gaugeData) {
   const el = document.getElementById(containerId);
-  if (!el) return;
+
+  if (!el) {
+    console.warn("No existe el contenedor:", containerId);
+    return;
+  }
+
+  if (!gaugeData) {
+    console.warn("No llegaron datos para:", containerId);
+    el.innerHTML = "<p class='text-muted text-center mt-5'>Sin datos</p>";
+    return;
+  }
 
   const chart = echarts.init(el);
   chart.setOption(buildGaugeOption(gaugeData));
@@ -199,6 +231,7 @@ async function loadVehicleGauges(apiUrl) {
     renderVehicleGauge("gauge-battery", data.gauges.battery);
     renderVehicleGauge("gauge-fuel", data.gauges.fuel);
     renderVehicleGauge("gauge-oil", data.gauges.oil_pressure);
+    renderVehicleGauge("gauge-odometer", data.gauges.odometer);
 
     const ts = document.getElementById("gauges-timestamp");
     if (ts) {
@@ -214,7 +247,12 @@ async function loadVehicleGauges(apiUrl) {
   }
 }
 
+// async function loadGauges(vehiculoId) {
+//   const apiUrl = `/api/obd/gauges/?vehiculo_id=${vehiculoId}`;
+//   return loadVehicleGauges(apiUrl);
+// }
+
 async function loadGauges(vehiculoId) {
-  const apiUrl = `/api/obd/gauges/?vehiculo_id=${vehiculoId}`;
+  const apiUrl = `/api/vehiculos/${vehiculoId}/gauges/`;
   return loadVehicleGauges(apiUrl);
 }

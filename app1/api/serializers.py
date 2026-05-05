@@ -15,6 +15,7 @@ class OBDIngestSerializer(serializers.Serializer):
     battery_voltage_v = serializers.FloatField(required=False, allow_null=True)
     fuel_level_percent = serializers.FloatField(required=False, allow_null=True)
     engine_failure_imminent = serializers.BooleanField(required=False, allow_null=True)
+    odometer_reading = serializers.FloatField(required=False, allow_null=True)
 
     def validate(self, attrs):
         # default timestamp
@@ -29,6 +30,7 @@ class OBDIngestSerializer(serializers.Serializer):
             "oil_pressure_psi",
             "battery_voltage_v",
             "fuel_level_percent",
+            "odometer_reading",
             "engine_failure_imminent",
         ]
         if not any(k in attrs for k in metric_keys):

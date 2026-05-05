@@ -43,6 +43,30 @@ def get_vehicle_gauge_data(vehiculo):
             "gauges": {},
         }
 
+    # estado dinámico para kilometraje
+    # odometer = latest.odometer_reading
+
+    # if odometer is None:
+    #     odometer_status = "unknown"
+    #     odometer_value = 0
+    # else:
+    #     odometer_status = "ok"
+    #     odometer_value = odometer
+    odometer = latest.odometer_reading
+
+    if odometer is None:
+        odometer_value = 0
+        odometer_status = "unknown"
+    else:
+        odometer_value = odometer / 1000
+
+        if odometer >= 200000:
+            odometer_status = "critical"
+        elif odometer >= 100000:
+            odometer_status = "warning"
+        else:
+            odometer_status = "ok"
+
     # RMP
     rpm = latest.engine_rpm
 
@@ -158,6 +182,14 @@ def get_vehicle_gauge_data(vehiculo):
             "max": 80,
             "unit": "PSI",
             "status": oil_status,
+        },
+        "odometer": {
+            "title": "Kilometraje",
+            "value": round(odometer_value, 1),
+            "min": 0,
+            "max": 260,
+            "unit": "mil km",
+            "status": odometer_status,
         },
     }
 
